@@ -1,79 +1,76 @@
-#include <pinocchio/parsers/sample-models.hpp>
-#include <pinocchio/spatial/explog.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/algorithm/jacobian.hpp>
-#include <pinocchio/algorithm/joint-configuration.hpp>
 #include "../include/kinematics.hpp"
 
-JointStateVector inverseKinematicsSolver()
+/*
+* @brief: Inverse kinematics solver
+* @param: robot: robot model
+* @param: q: initial joint state
+* @param: oMdes: desired end-effector pose
+* @return: q: joint state that achieves desired end-effector pose
+*/
+
+JointStateVector inverseKinematicsSolver(Model &robot, JointStateVector &q, SE3 &oMdes)
 {
-    pinocchio::Model model;
-    pinocchio::buildModels::manipulator(model);
-    pinocchio::Data data(model);
+    Data data(robot);
 
-    const int JOINT_ID = 6;
-    const pinocchio::SE3 oMdes(Eigen::Matrix3d::Identity(), Eigen::Vector3d(1., 0., 1.));
-
-    Eigen::VectorXd q = pinocchio::neutral(model);
+    const int JOINT_ID = 6; // end-effector
     const double eps = 1e-4;
     const int IT_MAX = 1000;
     const double DT = 1e-1;
     const double damp = 1e-6;
 
-    pinocchio::Data::Matrix6x J(6, model.nv);
+    pinocchio::Data::Matrix6x J(6, robot.nv);
     J.setZero();
 
     bool success = false;
-    typedef Eigen::Matrix<double, 6, 1> Vector6d;
-    Vector6d err;
-    Eigen::VectorXd v(model.nv);
+    JointStateVector err;
+    Eigen::VectorXd v(robot.nv);
+
+    // Main loop
     for (int i = 0;; i++)
     {
-        pinocchio::forwardKinematics(model, data, q);
+        // Compute the pose of the end effector given the
+        // current joint configuration q
+        pinocchio::forwardKinematics(robot, data, q);
+
         const pinocchio::SE3 dMi = oMdes.actInv(data.oMi[JOINT_ID]);
+        // Compute the difference between the current end effector pose
+        // and the desired end effector pose
         err = pinocchio::log6(dMi).toVector();
         if (err.norm() < eps)
         {
+            // The error is small enough, we can stop here
             success = true;
             break;
         }
         if (i >= IT_MAX)
         {
+            // The maximum number of iterations has been reached
             success = false;
             break;
         }
-        pinocchio::computeJointJacobian(model, data, q, JOINT_ID, J);
+
+        // Update the joint configuration
+        pinocchio::computeJointJacobian(robot, data, q, JOINT_ID, J);
         pinocchio::Data::Matrix6 JJt;
         JJt.noalias() = J * J.transpose();
         JJt.diagonal().array() += damp;
         v.noalias() = -J.transpose() * JJt.ldlt().solve(err);
-        q = pinocchio::integrate(model, q, v * DT);
+        q = pinocchio::integrate(robot, q, v * DT);
         if (!(i % 10))
             std::cout << i << ": error = " << err.transpose() << std::endl;
     }
 
     if (success)
-    {
         std::cout << "Convergence achieved!" << std::endl;
-    }
     else
-    {
         std::cout << "\nWarning: the iterative algorithm has not reached convergence to the desired precision" << std::endl;
-    }
-
-    std::cout << "\nresult: " << q.transpose() << std::endl;
+    
     std::cout << "\nfinal error: " << err.transpose() << std::endl;
+    return q;
 }
 
-void send_des_jstate(const JointStateVector &joint_pos)
-{
-    std::cout << "q_des " << joint_pos.transpose() << std::endl;
-    for (int i = 0; i < joint_pos.size(); i++)
-    {
-        jointState_msg_sim.position[i] = joint_pos[i];
-        jointState_msg_sim.velocity[i] = 0.0;
-        jointState_msg_sim.effort[i] = 0.0;
-    }
-
-    pub_des_jstate.publish(jointState_msg_sim);
+Model getRobotModel(std::string &path) {
+    Model model;
+    pinocchio::urdf::buildModel(path, model);
+    return model;
 }
