@@ -3,8 +3,9 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/joint-configuration.hpp>
+#include "../include/kinematics.hpp"
 
-void inverseKinematicsSolver()
+JointStateVector inverseKinematicsSolver()
 {
     pinocchio::Model model;
     pinocchio::buildModels::manipulator(model);
@@ -62,4 +63,17 @@ void inverseKinematicsSolver()
 
     std::cout << "\nresult: " << q.transpose() << std::endl;
     std::cout << "\nfinal error: " << err.transpose() << std::endl;
+}
+
+void send_des_jstate(const JointStateVector &joint_pos)
+{
+    std::cout << "q_des " << joint_pos.transpose() << std::endl;
+    for (int i = 0; i < joint_pos.size(); i++)
+    {
+        jointState_msg_sim.position[i] = joint_pos[i];
+        jointState_msg_sim.velocity[i] = 0.0;
+        jointState_msg_sim.effort[i] = 0.0;
+    }
+
+    pub_des_jstate.publish(jointState_msg_sim);
 }
