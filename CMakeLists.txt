@@ -3,12 +3,25 @@ cmake_minimum_required(VERSION 2.8.3)
 project(Kinematics)
 
 ## Find catkin and any catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs 
+  sensor_msgs message_generation geometry_msgs REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(pinocchio REQUIRED)
 
+## Declare ROS messages and services
+add_message_files(
+  DIRECTORY
+  msg
+  FILES
+  DesiredPose.msg
+)
+
+generate_messages(DEPENDENCIES geometry_msgs)
+
 ## Declare a catkin package
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS message_runtime
+)
 
 ## Build talker and listener
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
