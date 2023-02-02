@@ -7,6 +7,7 @@
 typedef Eigen::Matrix<double, 6, 6> Jacobian;
 typedef Eigen::Matrix<double, 6, 1> JointStateVector;
 typedef Eigen::Matrix<double, 4, 4> SE3;
+typedef Eigen::Matrix<double, 3, 3> SO3;
 
 class Robot {
 
@@ -45,6 +46,8 @@ private:
     // Inverse skew operation. Takes a 3x3 skew-symmetric matrix and returns
     // a 3x1 vector.
     Eigen::Matrix<double, 3, 1> invskew(Eigen::Matrix<double, 3, 3> &S);
+    // Extract the rotation matrix from a homogeneous transformation matrix
+    SO3 rot(SE3 &T);
 
 public:
     // Joint state

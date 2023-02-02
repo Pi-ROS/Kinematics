@@ -126,3 +126,16 @@ Eigen::Matrix<double, 3, 1> Robot::invskew(Eigen::Matrix<double, 3, 3> &S) {
     v << S(2, 1), S(0, 2), S(1, 0);
     return v;
 }
+
+/**
+ * @brief: Returns the rotational component of a transformation matrix.
+ * @param: T - the transformation matrix
+*/
+
+SO3 Robot::rot(SE3 &T) {
+    SO3 R;
+    R << T(0, 0), T(0, 1), T(0, 2),
+         T(1, 0), T(1, 1), T(1, 2),
+         T(2, 0), T(2, 1), T(2, 2);
+    return R;
+}
