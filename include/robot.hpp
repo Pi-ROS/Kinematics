@@ -63,8 +63,16 @@ public:
     SE3 T45();
     // Transformation matrix from frame 5 to frame 6
     SE3 T56();
-    // Transformation matrix from the base frame to the end-effector
-    SE3 forwardKinematics();
+    // Transformation matrix from frame 0 to frame 2
+    SE3 T02();
+    // Transformation matrix from frame 0 to frame 3
+    SE3 T03();
+    // Transformation matrix from frame 0 to frame 4
+    SE3 T04();
+    // Transformation matrix from frame 0 to frame 5
+    SE3 T05();
+    // Transformation matrix from frame 0 to frame 6
+    SE3 T06();
     // Jacobian of the end-effector transformation with respect to
     // joint coordinates
     Jacobian jacobian();
