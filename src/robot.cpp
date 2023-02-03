@@ -1,141 +1,50 @@
 #include "../include/robot.hpp"
+#include "../include/se3.hpp"
 #include <cmath>
-
-/**
- * @brief: Computation of the Jacobian matrix for the transformation from
- * the base frame to the end effector frame, with respect to the joints coordinates.
-*/
-
-Jacobian Robot::Jacobian() {
-    // Angular velocities
-    Eigen::Matrix<double, 3, 1> Jw1, Jw2, Jw3, Jw4, Jw5, Jw6;
-    // Linear velocities
-    Eigen::Matrix<double, 3, 1> Jv1, Jv2, Jv3, Jv4, Jv5, Jv6;
-    Jacobian J;
-
-    // TODO: compute the jacobian for the UR5
-    return J;
-}
 
 /**
  * @brief: Constructor for the Robot class.
  * @param: q - the joint state vector
  */
 
-Robot::Robot(JointsStateVector q) {
+Robot::Robot(JointStateVector q){
+    (this->q).resize(6);
     this->q = q;
+
 }
 
 /**
- * @brief: Derivative of the transformation matrix for a pure translation
- * about the x-axis.
- * @param: d - the joint coordinate
+ * @brief: Transformation matrixes
+ * @param: theta - the joint angle
  */
-SE3 Robot::dTx(double d) {
-    SE3 dTx;
-    dTx << 0, 0, 0, 1,
-           0, 0, 0, 0,
-           0, 0, 0, 0,
-           0, 0, 0, 0;
-    return dTx;
+SE3 Robot::T01(double theta1) {
+    return SE3Operations::Tz(Robot::d1) * SE3Operations::Rx(theta1);
+}
+SE3 Robot::T12(double theta2) {
+    return SE3Operations::Rx(M_PI_2) * SE3Operations::Rz(theta2);
+}
+SE3 Robot::T23(double theta3) {
+    return SE3Operations::Tz(Robot::a2) * SE3Operations::Rz(theta3);
+}
+SE3 Robot::T34(double theta4) {
+    return SE3Operations::Tx(Robot::a3)* SE3Operations::Tz(Robot::d4) * SE3Operations::Rz(theta4);
+}
+SE3 Robot::T45(double theta5) {
+    return SE3Operations::Ty(Robot::d5) * SE3Operations::Rz(M_PI_2) * SE3Operations::Rz(theta5);
+}
+SE3 Robot::T56(double theta6) {
+    return SE3Operations::Ty(Robot::d6) * SE3Operations::Rz(- M_PI_2) * SE3Operations::Rz(theta6);
 }
 
-/**
- * @brief: Derivative of the transformation matrix for a pure translation
- * about the y-axis.
- * @param: d - the joint coordinate
- */
-
-SE3 Robot::dTy(double d) {
-    SE3 dTy;
-    dTy << 0, 0, 0, 0,
-           0, 0, 0, 1,
-           0, 0, 0, 0,
-           0, 0, 0, 0;
-    return dTy;
-}
-
-/**
- * @brief: Derivative of the transformation matrix for a pure translation
- * about the z-axis.
- * @param: d - the joint coordinate
- */
-
-SE3 Robot::dTz(double d) {
-    SE3 dTz;
-    dTz << 0, 0, 0, 0,
-           0, 0, 0, 0,
-           0, 0, 0, 1,
-           0, 0, 0, 0;
-    return dTz;
-}
-
-/**
- * @brief: Derivative of the transformation matrix for a pure rotation
- * about the x-axis.
- * @param: th - the joint coordinate
- */
-
-SE3 Robot::dRx(double th) {
-    SE3 dRx;
-    dRx << 0, 0, 0, 0,
-           0, 0, -1, 0,
-           0, 1, 0, 0,
-           0, 0, 0, 0;
-    return dRx * Rx(th);
-}
-
-/**
- * @brief: Derivative of the transformation matrix for a pure rotation
- * about the y-axis.
- * @param: th - the joint coordinate
- */
-
-SE3 Robot::dRy(double th) {
-    SE3 dRy;
-    dRy << 0, 0, 1, 0,
-           0, 0, 0, 0,
-           -1, 0, 0, 0,
-           0, 0, 0, 0;
-    return dRy * Ry(th);
-}
-
-/**
- * @brief: Derivative of the transformation matrix for a pure rotation
- * about the z-axis.
- * @param: th - the joint coordinate
- */
-
-SE3 Robot::dRz(double th) {
-    SE3 dRz;
-    dRz << 0, -1, 0, 0,
-           1, 0, 0, 0,
-           0, 0, 0, 0,
-           0, 0, 0, 0;
-    return dRz * Rz(th);
-}
-
-/**
- * @brief: Inverse skew operation. Takes a 3x3 skew-symmetric matrix and
- * returns a 3x1 vector.
- * @param: S - the skew-symmetric matrix
- */
-
-Eigen::Matrix<double, 3, 1> Robot::invskew(Eigen::Matrix<double, 3, 3> &S) {
-    Eigen::Matrix<double, 3, 1> v;
-    v << S(2, 1), S(0, 2), S(1, 0);
-    return v;
-}
-
-/**
- * @brief: Returns the rotational component of a transformation matrix.
- * @param: T - the transformation matrix
-*/
-
-SO3 Robot::rot(SE3 &T) {
-    SO3 R;
-    R << T(0, 0), T(0, 1), T(0, 2),
-         T(1, 0), T(1, 1), T(1, 2),
-         T(2, 0), T(2, 1), T(2, 2);
-    return R;
+SE3 Robot::forwardKinematics(JointStateVector q){
+    // Transformation matrixes
+    SE3 t01 = T01(q(0,0));
+    SE3 t12 = T12(q(1,0));
+    SE3 t23 = T23(q(2,0));
+    SE3 t34 = T34(q(3,0));
+    SE3 t45 = T45(q(4,0));
+    SE3 t56 = T56(q(5,0));
+    // Transformation matrixes from the base frame to the end-effector
+    SE3 t06 = t01 * t12 * t23 * t34 * t45 * t56;
+    return t06;
 }

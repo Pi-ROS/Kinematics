@@ -1,76 +1,45 @@
-#include "../include/kinematics.hpp"
+#include "kinematics.hpp"
 
-/*
-* @brief: Inverse kinematics solver
-* @param: robot: robot model
-* @param: q: initial joint state
-* @param: oMdes: desired end-effector pose
-* @return: q: joint state that achieves desired end-effector pose
-*/
+int main(int argc, char** argv){
+    JointStateVector joint_pos ;
 
-JointStateVector inverseKinematicsSolver(Model &robot, JointStateVector &q, SE3 &oMdes)
-{
-    Data data(robot);
+    ros::init(argc, argv, "direct_kinematics");
 
-    const int JOINT_ID = 6; // end-effector
-    const double eps = 1e-4;
-    const int IT_MAX = 1000;
-    const double DT = 1e-1;
-    const double damp = 1e-6;
-
-    pinocchio::Data::Matrix6x J(6, robot.nv);
-    J.setZero();
-
-    bool success = false;
-    JointStateVector err;
-    Eigen::VectorXd v(robot.nv);
-
-    // Main loop
-    for (int i = 0;; i++)
+    ROS_INFO_STREAM("STARTING KINEMATICS NODE");
+    if (argc == 2)
     {
-        // Compute the pose of the end effector given the
-        // current joint configuration q
-        pinocchio::forwardKinematics(robot, data, q);
-
-        const pinocchio::SE3 dMi = oMdes.actInv(data.oMi[JOINT_ID]);
-        // Compute the difference between the current end effector pose
-        // and the desired end effector pose
-        err = pinocchio::log6(dMi).toVector();
-        if (err.norm() < eps)
-        {
-            // The error is small enough, we can stop here
-            success = true;
-            break;
-        }
-        if (i >= IT_MAX)
-        {
-            // The maximum number of iterations has been reached
-            success = false;
-            break;
-        }
-
-        // Update the joint configuration
-        pinocchio::computeJointJacobian(robot, data, q, JOINT_ID, J);
-        pinocchio::Data::Matrix6 JJt;
-        JJt.noalias() = J * J.transpose();
-        JJt.diagonal().array() += damp;
-        v.noalias() = -J.transpose() * JJt.ldlt().solve(err);
-        q = pinocchio::integrate(robot, q, v * DT);
-        if (!(i % 10))
-            std::cout << i << ": error = " << err.transpose() << std::endl;
+        DEBUG = true;
+        ROS_INFO_STREAM("--- DEBUG MODE ---");
     }
 
-    if (success)
-        std::cout << "Convergence achieved!" << std::endl;
-    else
-        std::cout << "\nWarning: the iterative algorithm has not reached convergence to the desired precision" << std::endl;
-    
-    std::cout << "\nfinal error: " << err.transpose() << std::endl;
-    return q;
-}
+    ros::NodeHandle node;
+    ros::Publisher pub_jstate;
+    if (DEBUG) pub_jstate = node.advertise<std_msgs::Float64MultiArray>(debug_topic, 1);
+    else pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_topic, 1);
 
-Model getRobotModel(std::string &path) {
-    Model model;
-    pinocchio::urdf::buildModel(path, model);
-    return model;
+    ros::Rate loop_rate(LOOP_FREQUENCY);
+
+    Robot ur5(JointStateVector::Zero());
+
+    
+    joint_pos.resize(6);
+    joint_pos << 0.4, 0.3, 0.1, 0.3, 0.4, 0.2;
+
+    while (ros::ok())
+    {
+        publishJoints(pub_jstate, joint_pos);
+        SE3 ee = ur5.forwardKinematics(joint_pos);
+        VEC3 ee_pos = SE3Operations::tra(ee);
+        SO3 ee_rot = SE3Operations::rot(ee);
+        ROS_INFO_STREAM("EE positions: ");
+        ROS_INFO_STREAM(ee_pos(0) << " " << ee_pos(1) << " " << ee_pos(2));
+        ROS_INFO_STREAM("EE rotation: ");
+        ROS_INFO_STREAM(ee_rot(0) << " " << ee_rot(1) << " " << ee_rot(2));
+        ROS_INFO_STREAM(ee_rot(3) << " " << ee_rot(4) << " " << ee_rot(5));
+        ROS_INFO_STREAM(ee_rot(6) << " " << ee_rot(7) << " " << ee_rot(8));
+        ROS_INFO_STREAM("--------------------");
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+    return 0;
 }

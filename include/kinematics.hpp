@@ -1,20 +1,12 @@
 #ifndef KINEMATICS_HPP
 #define KINEMATICS_HPP
 
-#include <pinocchio/spatial/explog.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/algorithm/jacobian.hpp>
-#include <pinocchio/algorithm/joint-configuration.hpp>
-#include <pinocchio/parsers/urdf.hpp>
-#include "ros/ros.h"
-#include <sensor_msgs/JointState.h>
-#include <Eigen/Dense>
+#include "robot.hpp"
+#include "ros.hpp"
+#include <string>
 
-using namespace pinocchio;
-
-typedef Eigen::Matrix<double, 6, 1> JointStateVector;
-
-JointStateVector inverseKinematicsSolver(Model &robot, JointStateVector &q, SE3 &oMdes);
-Model getRobotModel(std::string &path);
+static bool DEBUG = false;
+static std::string debug_topic = "/debug";
+static std::string joint_state_topic = "/ur5/joint_group_pos_controller/command";
 
 #endif
