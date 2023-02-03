@@ -9,14 +9,13 @@ class Robot
 {
 
 private:
-    // DH parameters
+    // UR5 DH parameters
     static constexpr double d1 = 0.163;
     static constexpr double a2 = -0.42500;
     static constexpr double a3 = -0.39225;
     static constexpr double d4 = 0.134;
     static constexpr double d5 = 0.100;
     static constexpr double d6 = 0.100;
-
 
 public:
     // Joint state
@@ -35,18 +34,8 @@ public:
     SE3 T45(double theta5);
     // Transformation matrix from frame 5 to frame 6
     SE3 T56(double theta6);
-    // // Transformation matrix from frame 0 to frame 2
-    // SE3 T02();
-    // // Transformation matrix from frame 0 to frame 3
-    // SE3 T03();
-    // // Transformation matrix from frame 0 to frame 4
-    // SE3 T04();
-    // // Transformation matrix from frame 0 to frame 5
-    // SE3 T05();
-    // // Transformation matrix from frame 0 to frame 6
-    // SE3 T06();
     // Jacobian of the end-effector transformation with respect to
-    // joint coordinates
+    // the joints coordinates
     Jacobian jacobian();
 
     /**
