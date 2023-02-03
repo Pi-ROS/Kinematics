@@ -48,3 +48,40 @@ SE3 Robot::forwardKinematics(JointStateVector q){
     SE3 t06 = t01 * t12 * t23 * t34 * t45 * t56;
     return t06;
 }
+
+/*-------------*/
+/**
+ * @brief: Computation of the Jacobian matrix for the transformation from
+ * the base frame to the end effector frame, with respect to the joints coordinates.
+*/
+
+Jacobian Robot::jacobian() {
+    /**
+     * Rows 3-5 of the Jacobian are 0 because there are no prismatic joints. 
+     * 
+     * J =  [ 0,  s1,  s1,  s1,  c1s234, r13 ]
+     *      [ 0, -c1, -c1, -c1,  s1s234, r23 ]
+     *      [ 1,   0,   0,   0,   -c234, r33 ]
+     *      [ 0,   0,   0,   0,       0,   0 ]
+     *      [ 0,   0,   0,   0,       0,   0 ]
+     *      [ 0,   0,   0,   0,       0,   0 ]
+    */  
+
+    Jacobian J;
+    double s1 = sin(q(0, 0));
+    double c1 = cos(q(0, 0));
+    double s5 = sin(q(4, 0));
+    double c5 = cos(q(4, 0));
+    double s234 = sin(q(1, 0) + q(2, 0) + q(3, 0));
+    double c234 = cos(q(1, 0) + q(2, 0) + q(3, 0));
+    double r13 = -c1*c234*s5 + c5*s1;
+    double r23 = -s1*c234*s5 - c1*c5;
+    double r33 = -s5*s234;
+    J << 0, s1, s1, s1, c1*s234, r13,
+         0, -c1, -c1, -c1, s1*s234, r23,
+         1, 0, 0, 0, -c234, r33,
+         0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0;
+    return J;
+}

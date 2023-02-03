@@ -51,7 +51,7 @@ public:
     // // Transformation matrix from frame 0 to frame 6
     // SE3 T06();
     // Jacobian of the end-effector transformation with respect to
-    // joint coordinates
+    // the joints coordinates
     Jacobian jacobian();
 
     /**
