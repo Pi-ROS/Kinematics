@@ -6,7 +6,7 @@
 #include <realtime_tools/realtime_publisher.h>
 #include "se3.hpp"
 
-#define LOOP_FREQUENCY 1000.
+#define LOOP_FREQUENCY 10. // [Hz]
 
 void publishJoints(ros::Publisher pub, JointStateVector &data);
 
