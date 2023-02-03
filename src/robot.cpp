@@ -58,6 +58,7 @@ SE3 Robot::forwardKinematics(JointStateVector q){
 Jacobian Robot::jacobian() {
     /**
      * Rows 3-5 of the Jacobian are 0 because there are no prismatic joints. 
+     * ci: cos(thi). si: sin(thi). rij = rot(T06)[i, j].
      * 
      * J =  [ 0,  s1,  s1,  s1,  c1s234, r13 ]
      *      [ 0, -c1, -c1, -c1,  s1s234, r23 ]
