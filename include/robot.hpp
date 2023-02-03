@@ -9,19 +9,14 @@ class Robot
 {
 
 private:
-    double d1;
-    double a2;
-    double a3;
-    double d4;
-    double d5;
-    double d6;
+    // DH parameters
+    static constexpr double d1 = 0.163;
+    static constexpr double a2 = -0.42500;
+    static constexpr double a3 = -0.39225;
+    static constexpr double d4 = 0.134;
+    static constexpr double d5 = 0.100;
+    static constexpr double d6 = 0.100;
 
-    // double d1 = 0.163;
-    // double Robot::a2 = -0.42500;
-    // static double Robot::a3 = -0.39225;
-    // static double Robot::d4 = 0.134;
-    // static double Robot::d5 = 0.100;
-    // static double Robot::d6 = 0.100;
 
 public:
     // Joint state
