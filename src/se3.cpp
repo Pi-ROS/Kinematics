@@ -56,7 +56,7 @@ SE3 SE3Operations::Tz(double d) {
     return T;
 }
 
-SO3 SE3Operations::rot(SE3 T) {
+SO3 SE3Operations::ro(SE3 T) {
     SO3 R;
     R << T(0, 0), T(0, 1), T(0, 2),
          T(1, 0), T(1, 1), T(1, 2),
@@ -64,10 +64,73 @@ SO3 SE3Operations::rot(SE3 T) {
     return R;
 }
 
-VEC3 SE3Operations::tra(SE3 T) {
+VEC3 SE3Operations::tau(SE3 T) {
     VEC3 R;
     R << T(0, 3), 
          T(1, 3),
          T(2, 3);
     return R;
+}
+
+/**
+ * @brief Converts a rotation matrix to an angle-axis representation
+*/
+
+VEC3 SE3Operations::angleAxis(SO3 R) {
+    VEC3 l;
+    l << R(2, 1) - R(1, 2),
+              R(0, 2) - R(2, 0),
+              R(1, 0) - R(0, 1);
+    VEC3 alphaR;
+    double l_norm = l.norm();
+
+    if (l_norm == 0) {
+        // R is a diagonal vector
+        if (R(0, 0) == 1 && R(1, 1) == 1 && R(2, 2) == 1) {
+            // R is the identity matrix
+            alphaR << 0, 0, 0;
+        } else {
+            alphaR << R(0, 0) + 1, R(1, 1) + 1, R(2, 2) + 1;
+            alphaR = alphaR * M_PI / 2;
+        }
+    } else {
+        alphaR = l * atan2(l_norm, R(0, 0) + R(1, 1) + R(2, 2) - 1) / l_norm;
+    }
+    return alphaR;
+}
+
+/**
+ * @brief Computes the error vector between the desired and 
+ * current end-effector poses.
+*/
+
+VEC6 LM::error(SE3 &T_curr, SE3 &T_des) {
+    VEC3 tau_des = SE3Operations::tau(T_des);
+    VEC3 tau_curr = SE3Operations::tau(T_curr);
+    VEC3 alphaR = SE3Operations::angleAxis(SE3Operations::ro(T_des) * SE3Operations::ro(T_curr).transpose());
+    VEC6 e;
+    e << tau_des - tau_curr, alphaR;
+    return e;
+}
+
+/**
+ * @brief Computes the gk term, which represents the direction
+ * of the update for the joint configuration.
+*/
+
+VEC6 LM::gk(Eigen::Matrix<double, 6, 6> &J, VEC6 &e) {
+    VEC6 g;
+    g = J.transpose() * e;
+    return g;
+}
+
+/**
+ * @brief Computes the Ak matrix, which drives the update for
+ * the joint coordinates.
+*/
+
+Eigen::Matrix<double, 6, 6> LM::Ak(Eigen::Matrix<double, 6, 6> &J, double E) {
+    Eigen::Matrix<double, 6, 6> A;
+    A = J * J.transpose() + E * lambda * Eigen::Matrix<double, 6, 6>::Identity();
+    return A;
 }

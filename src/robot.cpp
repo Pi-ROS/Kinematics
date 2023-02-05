@@ -36,7 +36,12 @@ SE3 Robot::T56(double theta6) {
     return SE3Operations::Ty(Robot::d6) * SE3Operations::Rz(- M_PI_2) * SE3Operations::Rz(theta6);
 }
 
-SE3 Robot::forwardKinematics(JointStateVector q){
+/**
+ * @brief: Forward kinematics
+ * @param: q - the joint state vector
+ */
+
+SE3 Robot::forwardKinematics(JointStateVector &q){
     // Transformation matrixes
     SE3 t01 = T01(q(0,0));
     SE3 t12 = T12(q(1,0));
@@ -49,27 +54,13 @@ SE3 Robot::forwardKinematics(JointStateVector q){
     return t06;
 }
 
-/*-------------*/
 /**
- * @brief: Computation of the Jacobian matrix for the transformation from
- * the base frame to the end effector frame, with respect to the joints coordinates.
-*/
+ * @brief: Jacobian of the end-effector transformation with respect to
+ * the current joints coordinates.
+ */
 
-Jacobian Robot::jacobian() {
-    /**
-     * Rows 3-5 of the Jacobian are 0 because there are no prismatic joints. 
-     * ci: cos(thi). si: sin(thi). rij = rot(T06)[i, j].
-     * pi: tra(T06)[i]. di, ai: DH parameters.
-     * 
-     * J =  [   0,             s1,                              s1,                      s1,                     c1s234, r13 ]
-     *      [   0,            -c1,                             -c1,                     -c1,                     s1s234, r23 ]
-     *      [   1,              0,                               0,                       0,                      -c234, r33 ]
-     *      [ -py,   -c1(pz - d1),   c1(s234s5d6 + c234d5 - s23a3),   c1(s234s5d6 + c234d5),       -d6(s1s5 + c1c234c5),   0 ]
-     *      [  px,   -s1(pz - d1),   s1(s234s5d6 + c234d5 - s23a3),   s1(s234s5d6 + c234d5),        d6(c1s5 - c234c5s1),   0 ]
-     *      [   0,    s1py + c1px,      -c234s5d6 + s234d5 + c23a3,      -c234s5d6 + s234d5,                  -c5s234d6,   0 ]
-    */  
-
-    Jacobian J;
+Eigen::Matrix<double, 6, 6> Robot::jacobian() {
+    Eigen::Matrix<double, 6, 6> J;
     double s1 = sin(q(0, 0));
     double c1 = cos(q(0, 0));
     double c2 = cos(q(1, 0));
@@ -94,4 +85,39 @@ Jacobian Robot::jacobian() {
          0, -c1, -c1, -c1, s1*s234, r23,
          1, 0, 0, 0, -c234, r33;
     return J;
+}
+
+/**
+ * @brief Inverse kinematics implementation based on the LM algorithm.
+*/
+
+void Robot::inverseKinematics(SE3 &T_des) {
+    int i = 0;
+    VEC6 q_k = q;
+
+    while (i < LM::maxIterations) {
+        // TODO: read the current joint state vector
+
+        // Current pose of the end-effector
+        SE3 T_k = forwardKinematics(q_k);
+        // Error vector
+        VEC6 e = LM::error(T_k, T_des);
+        // Error scalar
+        double E = e.norm() * 0.5;
+
+        if (E < LM::errTresh) {
+            break;
+        }
+
+        Eigen::Matrix<double, 6, 6> Jk = jacobian();
+        Eigen::Matrix<double, 6, 6> Ak = LM::Ak(Jk, E);
+        VEC6 gk = LM::gk(Jk, e);
+
+        // Update the joint state vector
+        q_k = q_k + Ak.inverse() * gk;
+        i++;
+
+        // TODO: write the new joint state vector
+    }
+
 }
