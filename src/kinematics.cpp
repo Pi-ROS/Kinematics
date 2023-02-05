@@ -14,8 +14,8 @@ int main(int argc, char **argv)
     }
 
     ros::NodeHandle node;
-    ros::Publisher pub_jstate;
-    ros::Subscriber sub_jstate;
+    // ros::Publisher pub_jstate;
+    // ros::Subscriber sub_jstate;
     if (DEBUG)
     {
         pub_jstate = node.advertise<std_msgs::Float64MultiArray>(debug_topic, 1);
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
             x = x + 0.01;
             joint_pos << x, x, x, x, x, x;
 
-            /* CODE fFOR PUBLISHING ON PUB_JSTATE*/
+            /* CODE fFOR PUBLISHING ON pub_jstate*/
             publishJoints(pub_jstate, joint_pos);
             ros::spinOnce();
             loop_rate.sleep();
@@ -73,9 +73,40 @@ int main(int argc, char **argv)
     /* --------- REAL CODE --------- */
     else
     {
+        // disp = [0.2; 0.5; 0.7];
+        // rot = [cos(th) -sin(th) 0;
+        //     sin(th) cos(th)  0;
+        //     0         0      1];
+
+        // Tbe = [rot, disp; 0 0 0 1];
+
+        JointStateVector q_home;
+        q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+        SE3 T_home = ur5.forwardKinematics(q_home);
+        // VEC3 disp_home = SE3Operations::tau(T_home);
+        // SO3 rot_home = SE3Operations::ro(T_home);
+
+        // VEC3 disp;
+        // disp << 0.8, 0.2, 0.5;
+        // double th = 0.3* M_PI;
+        // SO3 rot;
+        // rot << cos(th), -sin(th), 0,
+        //     sin(th), cos(th), 0,
+        //     0, 0, 1;
+
+
+        // SE3 Tbe;
+        // Tbe << rot_home, disp_home,
+        //     0, 0, 0, 1;
+        JointStateVector q_des = ur5.inverseKinematics(T_home);
+        //ur5.move(0.01, 0.6, q_des);
+
         while (ros::ok())
         {
-            
+            loop_rate.sleep();
+            //ROS_INFO_STREAM("Destination reached");
+            ros::spinOnce();
+            //ROS_INFO_STREAM("Data read: " << data_read);
         }
     }
     /* --------- END REAL CODE --------- */

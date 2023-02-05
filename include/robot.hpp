@@ -72,11 +72,21 @@ public:
      */
     SE3 forwardKinematics(JointStateVector &q);
 
+   /**
+    * @brief Inverse kinematics
+    * @param T_des Desired end-effector transformation
+    * @return Joint state vector
+   */
+    JointStateVector inverseKinematics(SE3 &T_des);
+
     /**
-     * @brief Inverse kinematics
-     * @param T_des Desired end-effector transformation
-    */
-    void inverseKinematics(SE3 &T_des);
+     * @brief Move the robot
+     * 
+     * @param dt Time step
+     * @param v_ref Desired velocity
+     * @param q_des Desired joint state vector 
+     */
+    void move(double dt, double v_des, JointStateVector q_des);
 };
 
 #endif
