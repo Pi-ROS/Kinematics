@@ -64,7 +64,7 @@ public:
      * @brief Jacobian of the end-effector transformation with respect to
      * the current joints coordinates.
     */
-    Eigen::Matrix<double, 6, 6> jacobian();
+    Eigen::Matrix<double, 6, 6> jacobian(VEC6 q);
 
     /**
      * @brief Forward kinematics
@@ -86,7 +86,40 @@ public:
      * @param v_ref Desired velocity
      * @param q_des Desired joint state vector 
      */
-    void move(double dt, double v_des, JointStateVector q_des);
+    void homingProcedure(double dt, double v_des, VEC6 q_des);
+
+    /**
+     * @brief 
+     * 
+     */
+    void lineSearch(SE3 T_des);
 };
+
+class Controller{
+    static constexpr double q1min = 0;
+    static constexpr double q1max = M_PI;
+    static constexpr double q1avg = M_PI / 2.0;
+    static constexpr double q2min = 0;
+    static constexpr double q2max = M_PI;
+    static constexpr double q2avg = M_PI / 2.0;
+    static constexpr double q3min = - M_PI;
+    static constexpr double q3max = 0;
+    static constexpr double q3avg = - M_PI / 2.0;
+    static constexpr double q4min = - M_PI / 2.0;
+    static constexpr double q4max = 0;
+    static constexpr double q4avg = M_PI / 2.0;
+    static constexpr double q5min = - M_PI / 2.0;
+    static constexpr double q5max = 0;
+    static constexpr double q5avg = M_PI / 2.0;
+    static constexpr double q6min = - M_PI / 2.0;
+    static constexpr double q6max = 0;
+    static constexpr double q6avg = M_PI / 2.0;
+public:
+    static constexpr double dt = 0.1;
+    static constexpr double Tmax = 2;
+    static void redundantController();
+    static void computeQ0dot(VEC6 q);
+}
+
 
 #endif

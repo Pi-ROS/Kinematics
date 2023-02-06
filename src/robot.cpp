@@ -20,27 +20,63 @@ Robot::Robot(JointStateVector q)
  */
 SE3 Robot::T01(double theta1)
 {
-    return SE3Operations::Tz(Robot::d1) * SE3Operations::Rx(theta1);
+    //return SE3Operations::Tz(Robot::d1) * SE3Operations::Rz(theta1);
+    SE3 tmp;
+    tmp << cos(theta1), -sin(theta1), 0, 0,
+           sin(theta1), cos(theta1), 0, 0,
+           0, 0, 1, Robot::d1,
+           0, 0, 0, 1;
+    return tmp;
 }
 SE3 Robot::T12(double theta2)
 {
-    return SE3Operations::Rx(M_PI_2) * SE3Operations::Rz(theta2);
+    //return SE3Operations::Rx(M_PI_2) * SE3Operations::Rz(theta2);
+    SE3 tmp;
+    tmp << cos(theta2), -sin(theta2), 0, 0,
+           0, 0, -1, 0,
+           sin(theta2), cos(theta2), 0, 0,
+           0, 0, 0, 1;
+    return tmp;
 }
 SE3 Robot::T23(double theta3)
 {
-    return SE3Operations::Tz(Robot::a2) * SE3Operations::Rz(theta3);
+    //return SE3Operations::Tz(Robot::a2) * SE3Operations::Rz(theta3);
+    SE3 tmp;
+    tmp << cos(theta3), -sin(theta3), 0, Robot::a2,
+           sin(theta3), cos(theta3), 0, 0,
+           0, 0, 1, 0,
+           0, 0, 0, 1;
+    return tmp;
 }
 SE3 Robot::T34(double theta4)
 {
-    return SE3Operations::Tx(Robot::a3) * SE3Operations::Tz(Robot::d4) * SE3Operations::Rz(theta4);
+    //return SE3Operations::Tx(Robot::a3) * SE3Operations::Tz(Robot::d4) * SE3Operations::Rz(theta4);
+    SE3 tmp;
+    tmp << cos(theta4), -sin(theta4), 0, Robot::a3,
+           sin(theta4), cos(theta4), 0, 0,
+           0, 0, 1, Robot::d4,
+           0, 0, 0, 1;
+    return tmp;
 }
 SE3 Robot::T45(double theta5)
 {
-    return SE3Operations::Ty(Robot::d5) * SE3Operations::Rz(M_PI_2) * SE3Operations::Rz(theta5);
+    //return SE3Operations::Ty(Robot::d5) * SE3Operations::Rz(M_PI_2) * SE3Operations::Rz(theta5);
+    SE3 tmp;
+    tmp << cos(theta5), -sin(theta5), 0, 0,
+           0, 0, -1, -Robot::d5,
+           sin(theta5), cos(theta5), 0, 0,
+           0, 0, 0, 1;
+    return tmp;
 }
 SE3 Robot::T56(double theta6)
 {
-    return SE3Operations::Ty(Robot::d6) * SE3Operations::Rz(-M_PI_2) * SE3Operations::Rz(theta6);
+    //return SE3Operations::Ty(Robot::d6) * SE3Operations::Rz(-M_PI_2) * SE3Operations::Rz(theta6);
+    SE3 tmp;
+    tmp << cos(theta6), -sin(theta6), 0, 0,
+           0, 0, 1, Robot::d6,
+           -sin(theta6), -cos(theta6), 0, 0,
+           0, 0, 0, 1;
+    return tmp;
 }
 
 /**
@@ -67,7 +103,7 @@ SE3 Robot::forwardKinematics(JointStateVector &q)
  * the current joints coordinates.
  */
 
-Eigen::Matrix<double, 6, 6> Robot::jacobian()
+Eigen::Matrix<double, 6, 6> Robot::jacobian(VEC6 q)
 {
     Eigen::Matrix<double, 6, 6> J;
     double s1 = sin(q(0, 0));
@@ -120,19 +156,22 @@ JointStateVector Robot::inverseKinematics(SE3 &T_des)
             break;
         }
 
-        Eigen::Matrix<double, 6, 6> Jk = jacobian();
+        Eigen::Matrix<double, 6, 6> Jk = jacobian(q_k);
         Eigen::Matrix<double, 6, 6> Ak = LM::Ak(Jk, E);
         VEC6 gk = LM::gk(Jk, e);
 
         // Update the joint state vector
         q_k = q_k + Ak.inverse() * gk;
+        ROS_INFO_STREAM("iter " << i << "\nq_k: " << q_k.transpose());
+        ROS_INFO_STREAM("e_k: " << e.transpose() << "\n-------------------");
         i++;
     }
+    ROS_INFO_STREAM("iter: " << i);
     return q_k;
 }
 
-void Robot::move(double dt, double v_des, JointStateVector q_des)
-{
+void Robot::homingProcedure(double dt, double v_des, VEC6 q_des)
+{   
     ROS_INFO_STREAM("Starting to move");
     double v_ref = 0.0;
     JointStateVector q_k = q;
@@ -148,6 +187,8 @@ void Robot::move(double dt, double v_des, JointStateVector q_des)
             v_ref += 0.005 * (v_des - v_ref);
             q_k += dt * v_ref * e / e_norm;
             publishJoints(pub_jstate, q_k);
+            ros::spinOnce();
+            rate.sleep();
         }
         rate.sleep();
         if (e_norm < 0.001)
@@ -157,3 +198,60 @@ void Robot::move(double dt, double v_des, JointStateVector q_des)
         }
     }
 }
+
+void Robot::lineSearch(SE3 T_des){
+    ros::Rate loop_rate(10);
+    SE3 T_curr = forwardKinematics(q);
+    JointStateVector e = LM::error(T_curr, T_des);
+    VEC3 tau_e;
+    tau_e << e(0), e(1), e(2);
+    int N = tau_e.norm() * 10;
+    //int N = 1;
+    VEC6 increment = e / N;
+    VEC6 v_des = SE3Operations::to6D(T_curr) + increment;
+    JointStateVector q_k = q;
+    for (int j = 0; j < N; j++)
+    {
+        /* IK */
+        int i = 0;
+
+        while (i < LM::maxIterations)
+        {
+
+            // Current pose of the end-effector
+            SE3 T_k = forwardKinematics(q_k);
+            // Error vector
+            VEC6 v_k = SE3Operations::to6D(T_k);
+            VEC6 e = v_des - v_k;
+            // Error scalar
+            double E = e.norm() * 0.5;
+
+            if (E < LM::errTresh)
+            {
+                break;
+            }
+
+            Eigen::Matrix<double, 6, 6> Jk = jacobian(q_k);
+            Eigen::Matrix<double, 6, 6> Ak = LM::Ak(Jk, E);
+            VEC6 gk = LM::gk(Jk, e);
+
+            // Update the joint state vector
+            q_k = q_k + Ak.inverse() * gk;
+            
+            i++;
+        }
+        /*---*/
+        ROS_INFO_STREAM("iter " << i << "\nq_k: " << q_k.transpose());
+        ROS_INFO_STREAM("e_k: " << e.transpose() << "\n-------------------");
+        publishJoints(pub_jstate, q_k);
+        ros::spinOnce();
+        loop_rate.sleep();
+        v_des += increment;
+    }
+    q = q_k;
+}
+
+void Controller::redundantController(){
+
+}
+

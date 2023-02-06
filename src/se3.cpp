@@ -131,6 +131,14 @@ VEC6 LM::gk(Eigen::Matrix<double, 6, 6> &J, VEC6 &e) {
 
 Eigen::Matrix<double, 6, 6> LM::Ak(Eigen::Matrix<double, 6, 6> &J, double E) {
     Eigen::Matrix<double, 6, 6> A;
-    A = J * J.transpose() + E * lambda * Eigen::Matrix<double, 6, 6>::Identity();
+    A = J.transpose() * J + E * lambda * Eigen::Matrix<double, 6, 6>::Identity();
     return A;
+}
+
+VEC6 SE3Operations::to6D(SE3 v){
+    VEC3 tras = SE3Operations::tau(v);
+    VEC3 rot = SE3Operations::angleAxis(SE3Operations::ro(v));
+    VEC6 ret;
+    ret << tras, rot;
+    return ret;
 }

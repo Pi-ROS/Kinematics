@@ -27,9 +27,12 @@ int main(int argc, char **argv)
         sub_jstate = node.subscribe(joint_state_subscriber_topic, 1000, readJoints);
     }
 
+
     ros::Rate loop_rate(LOOP_FREQUENCY);
 
-    Robot ur5(JointStateVector::Zero());
+    VEC6 q0;
+    q0 << 5.5127358094431145e-05, -0.0001212409520094937, 9.891741610346116e-05, 0.00013209079602738427, 4.505457065562268e-05, 6.162511098306567e-05;
+    Robot ur5(q0);
 
     joint_pos.resize(6);
     data_read.resize(6);
@@ -82,25 +85,11 @@ int main(int argc, char **argv)
 
         JointStateVector q_home;
         q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
-        SE3 T_home = ur5.forwardKinematics(q_home);
-        // VEC3 disp_home = SE3Operations::tau(T_home);
-        // SO3 rot_home = SE3Operations::ro(T_home);
+        ur5.move(0.01, 0.6, q_home);
+       
 
-        // VEC3 disp;
-        // disp << 0.8, 0.2, 0.5;
-        // double th = 0.3* M_PI;
-        // SO3 rot;
-        // rot << cos(th), -sin(th), 0,
-        //     sin(th), cos(th), 0,
-        //     0, 0, 1;
-
-
-        // SE3 Tbe;
-        // Tbe << rot_home, disp_home,
-        //     0, 0, 0, 1;
-        JointStateVector q_des = ur5.inverseKinematics(T_home);
-        //ur5.move(0.01, 0.6, q_des);
-
+        ROS_INFO_STREAM("HO FINITO");
+        
         while (ros::ok())
         {
             loop_rate.sleep();

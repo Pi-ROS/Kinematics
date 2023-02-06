@@ -20,6 +20,7 @@ class SE3Operations{
         static SO3 ro(SE3 T);
         static VEC3 tau(SE3 T);
         static VEC3 angleAxis(SO3 R);
+        static VEC6 to6D(SE3 v);
 };
 
 class LM{
