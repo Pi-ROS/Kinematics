@@ -1,6 +1,6 @@
 #include "ros.hpp"
 
-void publishJoints(ros::Publisher pub, JointStateVector &data) {
+void publishJoints(ros::Publisher &pub, JointStateVector &data) {
     std_msgs::Float64MultiArray msg;
     msg.data.resize(data.size());
     for (int i = 0; i < data.size(); i++)

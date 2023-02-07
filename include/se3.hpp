@@ -8,6 +8,10 @@ typedef Eigen::Matrix<double, 3, 3> SO3;
 typedef Eigen::Matrix<double, 3, 1> VEC3;
 typedef Eigen::Matrix<double, 6, 1> JointStateVector;
 typedef Eigen::Matrix<double, 6, 1> VEC6;
+typedef Eigen::Matrix<double, 6, 6> MAT6;
+typedef Eigen::Matrix<double, 3, 6> MAT36;
+typedef Eigen::Matrix<double, 6, 3> MAT63;
+
 
 class SE3Operations{
     public:
@@ -19,7 +23,7 @@ class SE3Operations{
         static SE3 Tz(double d);
         static SO3 ro(SE3 T);
         static VEC3 tau(SE3 T);
-        static VEC3 angleAxis(SO3 R);
+        static VEC3 rotmToEul(SO3 R);
         static VEC6 to6D(SE3 v);
 };
 
@@ -31,7 +35,7 @@ class LM{
 
         static constexpr double lambda = 0.01;
         static constexpr int maxIterations = 500;
-        static constexpr double errTresh = 0.01;
+        static constexpr double errTresh = 0.001;
 
         /**
          * @brief Computes the error vector between the desired and

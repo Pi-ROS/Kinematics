@@ -24,6 +24,7 @@ public:
      * @brief Current configuration of the joints
     */
     JointStateVector q;
+    JointStateVector q_home;
 
     /**
      * @brief Construct a new Robot object
@@ -64,7 +65,7 @@ public:
      * @brief Jacobian of the end-effector transformation with respect to
      * the current joints coordinates.
     */
-    Eigen::Matrix<double, 6, 6> jacobian(VEC6 q);
+    MAT6 jacobian(VEC6 q);
 
     /**
      * @brief Forward kinematics
@@ -116,10 +117,19 @@ class Controller{
     static constexpr double q6avg = M_PI / 2.0;
 public:
     static constexpr double dt = 0.1;
-    static constexpr double Tmax = 2;
-    static void redundantController();
-    static void computeQ0dot(VEC6 q);
-}
+    static constexpr double T = 2;
+    static void redundantController(Robot &r, VEC3 &x_f);
+    static VEC6 computeQ0dot(VEC6 q);
+    static  VEC6 computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd);
+
+    /**
+     * @brief 
+     * 
+     * @param r robot
+     * @param rpy_f roll, pitch, yaw of the final position
+     */
+    static void redundantControllerRotation(Robot &r, VEC3 &rpy_f);
+};
 
 
 #endif

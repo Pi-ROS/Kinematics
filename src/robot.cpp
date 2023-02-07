@@ -12,6 +12,7 @@ Robot::Robot(JointStateVector q)
 {
     (this->q).resize(6);
     this->q = q;
+    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
 }
 
 /**
@@ -103,7 +104,7 @@ SE3 Robot::forwardKinematics(JointStateVector &q)
  * the current joints coordinates.
  */
 
-Eigen::Matrix<double, 6, 6> Robot::jacobian(VEC6 q)
+MAT6 Robot::jacobian(VEC6 q)
 {
     Eigen::Matrix<double, 6, 6> J;
     double s1 = sin(q(0, 0));
@@ -149,7 +150,8 @@ JointStateVector Robot::inverseKinematics(SE3 &T_des)
         // Error vector
         VEC6 e = LM::error(T_k, T_des);
         // Error scalar
-        double E = e.norm() * 0.5;
+        double e_norm = e.norm();
+        double E = e_norm * e_norm * 0.5;
 
         if (E < LM::errTresh)
         {
@@ -202,56 +204,146 @@ void Robot::homingProcedure(double dt, double v_des, VEC6 q_des)
 void Robot::lineSearch(SE3 T_des){
     ros::Rate loop_rate(10);
     SE3 T_curr = forwardKinematics(q);
-    JointStateVector e = LM::error(T_curr, T_des);
-    VEC3 tau_e;
-    tau_e << e(0), e(1), e(2);
-    int N = tau_e.norm() * 10;
-    //int N = 1;
-    VEC6 increment = e / N;
+
+    JointStateVector initialError = LM::error(T_curr, T_des);
+    VEC3 initialTransError;
+    initialTransError << initialError(0), initialError(1), initialError(2);
+
+    // Number of intermediate points
+    int N = initialTransError.norm() * 7;
+    VEC6 increment = initialError / N;
     VEC6 v_des = SE3Operations::to6D(T_curr) + increment;
     JointStateVector q_k = q;
+    double E;
+    VEC6 e;
+    Eigen::Matrix<double, 6, 6> Jk;
+    Eigen::Matrix<double, 6, 6> Ak;
+    VEC6 gk;
     for (int j = 0; j < N; j++)
     {
         /* IK */
         int i = 0;
-
+        
         while (i < LM::maxIterations)
         {
 
             // Current pose of the end-effector
             SE3 T_k = forwardKinematics(q_k);
-            // Error vector
             VEC6 v_k = SE3Operations::to6D(T_k);
-            VEC6 e = v_des - v_k;
+            // Error vector
+            e = v_des - v_k;
             // Error scalar
-            double E = e.norm() * 0.5;
+            double e_norm = e.norm();
+            E = e_norm * e_norm * 0.5;
 
             if (E < LM::errTresh)
             {
                 break;
             }
 
-            Eigen::Matrix<double, 6, 6> Jk = jacobian(q_k);
-            Eigen::Matrix<double, 6, 6> Ak = LM::Ak(Jk, E);
-            VEC6 gk = LM::gk(Jk, e);
+            Jk = jacobian(q_k);
+            Ak = LM::Ak(Jk, E);
+            gk = LM::gk(Jk, e);
 
             // Update the joint state vector
             q_k = q_k + Ak.inverse() * gk;
             
             i++;
         }
-        /*---*/
-        ROS_INFO_STREAM("iter " << i << "\nq_k: " << q_k.transpose());
-        ROS_INFO_STREAM("e_k: " << e.transpose() << "\n-------------------");
+        
+        v_des += increment;
+
         publishJoints(pub_jstate, q_k);
         ros::spinOnce();
         loop_rate.sleep();
-        v_des += increment;
     }
     q = q_k;
 }
 
-void Controller::redundantController(){
-
+void Controller::redundantController(Robot &r, VEC3 &x_f){
+    ros::Rate loop_rate(10);
+    VEC3 x_0 = SE3Operations::tau(r.forwardKinematics(r.q));
+    VEC3 v_des = (x_f - x_0) / Controller::T;
+    int N = Controller::T / Controller::dt;
+    VEC6 q_k = r.q;
+    VEC3 x_des;
+    VEC3 x_e = x_0;
+    // x_e: current position
+    // x_des: desired (next) position
+    for(int i = 1; i <= N; i++){
+        x_des = x_e + v_des * Controller::dt;
+        MAT6 jac = r.jacobian(q_k);
+        VEC6 q0dot = Controller::computeQ0dot(q_k);
+        VEC6 qdot = Controller::computeQdot(jac, q_k, x_e, x_des, v_des);
+        q_k = q_k + qdot * Controller::dt;
+        publishJoints(pub_jstate, q_k);
+        ros::spinOnce();
+        loop_rate.sleep();
+        x_e = x_des;
+    }
+    r.q = q_k;
 }
 
+VEC6 Controller::computeQ0dot(VEC6 q){
+    VEC6 result;
+    double D1 = 1 / (Controller::q1max - Controller::q1min);
+    double D2 = 1 / (Controller::q2max - Controller::q2min);
+    double D3 = 1 / (Controller::q3max - Controller::q3min);
+    double D4 = 1 / (Controller::q4max - Controller::q4min);
+    double D5 = 1 / (Controller::q5max - Controller::q5min);
+    double D6 = 1 / (Controller::q6max - Controller::q6min);
+
+    double q1t = q(0) - Controller::q1avg;
+    double q2t = q(1) - Controller::q2avg;
+    double q3t = q(2) - Controller::q3avg;
+    double q4t = q(3) - Controller::q4avg;
+    double q5t = q(4) - Controller::q5avg;
+    double q6t = q(5) - Controller::q6avg;
+
+    result << D1 * D1 * q1t, D2 * D2 * q2t, D3 * D3 * q3t, D4 * D4 * q4t, D5 * D5 * q5t, D6 * D6 * q6t;
+    result = result / 6.0;
+    return result;
+}
+
+VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
+    MAT36 Jtras;
+    // translation
+    Jtras << Jac(0,0), Jac(0,1), Jac(0,2), Jac(0,3), Jac(0,4), Jac(0,5),
+             Jac(1,0), Jac(1,1), Jac(1,2), Jac(1,3), Jac(1,4), Jac(1,5),
+             Jac(2,0), Jac(2,1), Jac(2,2), Jac(2,3), Jac(2,4), Jac(2,5);
+
+    // rotation
+    // Jtras << Jac(3,0), Jac(3,1), Jac(3,2), Jac(3,3), Jac(3,4), Jac(3,5),
+    //          Jac(4,0), Jac(4,1), Jac(4,2), Jac(4,3), Jac(4,4), Jac(4,5),
+    //          Jac(5,0), Jac(5,1), Jac(5,2), Jac(5,3), Jac(5,4), Jac(5,5);
+    VEC6 q0dot = computeQ0dot(q);
+    Eigen::MatrixXd JtransInv = Jtras.completeOrthogonalDecomposition().pseudoInverse();
+    VEC6 qdot = JtransInv * vd + (Eigen::Matrix<double, 6, 6>::Identity() - JtransInv * Jtras) * q0dot;
+    return qdot;
+}
+
+/*
+void Controller::redundantControllerRotation(Robot &r, VEC3 &rpy_f){
+    ros::Rate loop_rate(10);
+    VEC3 rpy_0 = SE3Operations::rotmToEul(SE3Operations::ro(r.forwardKinematics(r.q)));
+    VEC3 w_des = (rpy_f - rpy_0) / Controller::T;
+    int N = Controller::T / Controller::dt;
+    VEC6 q_k = r.q;
+    VEC3 rpy_des;
+    VEC3 rpy_e = rpy_0;
+    // rpy_e: current position
+    // rpy_des: desired (next) position
+    for(int i = 1; i <= N; i++){
+        rpy_des = rpy_e + w_des * Controller::dt;
+        MAT6 jac = r.jacobian(q_k);
+        VEC6 q0dot = Controller::computeQ0dot(q_k);
+         VEC6 qdot = Controller::computeQdot(jac, q_k, rpy_e, rpy_des, w_des);
+        q_k = q_k + qdot * Controller::dt;
+        publishJoints(pub_jstate, q_k);
+        ros::spinOnce();
+        loop_rate.sleep();
+        rpy_e = rpy_des;
+    }
+    r.q = q_k;
+}
+*/
