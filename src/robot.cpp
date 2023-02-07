@@ -164,11 +164,8 @@ JointStateVector Robot::inverseKinematics(SE3 &T_des)
 
         // Update the joint state vector
         q_k = q_k + Ak.inverse() * gk;
-        ROS_INFO_STREAM("iter " << i << "\nq_k: " << q_k.transpose());
-        ROS_INFO_STREAM("e_k: " << e.transpose() << "\n-------------------");
         i++;
     }
-    ROS_INFO_STREAM("iter: " << i);
     return q_k;
 }
 

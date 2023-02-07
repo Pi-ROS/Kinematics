@@ -20,6 +20,9 @@ private:
     static constexpr double d6 = 0.100;
 
 public:
+    
+    static constexpr double workingHeight =  0.4550;
+
     /**
      * @brief Current configuration of the joints
     */

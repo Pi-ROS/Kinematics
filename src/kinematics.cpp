@@ -41,27 +41,39 @@ int main(int argc, char **argv)
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
     ur5.q = q_home;
 
-    ROS_INFO_STREAM("STARTING...");
+    ROS_INFO_STREAM("STARTING spostamento piano");
 
+    VEC3 tau_des;
+    tau_des << 0.4, -0.3, Robot::workingHeight;
+    Controller::redundantController(ur5, tau_des);
+    ros::spinOnce();
+    loop_rate.sleep();
+
+    ROS_INFO_STREAM("HO FINITO spostamento piano");
+    VEC6 back = ur5.q;
+    ros::Duration(0.5).sleep();
+
+    ROS_INFO_STREAM("STARTING discensa");
     SE3 T_des;
-    T_des <<    1, 0, 0, 0.2,
-                0, 1, 0, 0.2,
+    T_des <<    1, 0, 0, 0.4,
+                0, 1, 0, -0.3,
                 0, 0, 1, 0.6,
                 0, 0, 0, 1;
     VEC6 q_des;
-    q_des = ur5.inverseKinematics(T_des);    
+    q_des = ur5.inverseKinematics(T_des);
+    ur5.q = q_des;
     publishJoints(pub_jstate, q_des);
     ros::spinOnce();
     loop_rate.sleep();
-    ROS_INFO_STREAM("HO FINITO");
+    ROS_INFO_STREAM("HO FINITO discesa");
+    ros::Duration(0.5).sleep();
 
-    ros::Duration(1).sleep();
-
-    ROS_INFO_STREAM("BACK TO HOME");
-    publishJoints(pub_jstate, q_home);
+    ROS_INFO_STREAM("STARTING salita");
+    publishJoints(pub_jstate, back);
     ros::spinOnce();
     loop_rate.sleep();
-    ROS_INFO_STREAM("BACK TO HOME FINITO");
+    ROS_INFO_STREAM("HO FINITO salita");
+
 
     while (ros::ok())
     {        
