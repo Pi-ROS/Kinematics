@@ -26,6 +26,32 @@ int main(int argc, char **argv)
         //sub_jstate = node.subscribe(joint_state_subscriber_topic, 1000, readJoints);
     }
 
+    // zed camera service
+    ros::ServiceClient client = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
+    pijoint_vision::ObjectDetection detection_srv;
+    
+    detection_srv.request.detect = true;
+    client.waitForExistence();
+
+    pijoint_vision::Object obj;
+    VEC3 pose;
+
+    if (client.call(detection_srv))
+    {
+        if(detection_srv.response.success)
+        {
+            ROS_INFO_STREAM("Object detected");
+            obj = detection_srv.response.objects[0];
+            pose << obj.box.center.x, obj.box.center.y, obj.box.center.z;
+            ROS_INFO_STREAM("Pose:\n" << pose);
+        }
+        else
+        {
+            ROS_INFO_STREAM("Object not detected");
+        }
+    }
+
+
     ros::Rate loop_rate(LOOP_FREQUENCY);
     ros::spinOnce();
     loop_rate.sleep();
@@ -43,8 +69,10 @@ int main(int argc, char **argv)
 
     ROS_INFO_STREAM("STARTING spostamento piano");
 
+    //  -0.1200 0.4243 (-0.1131)
+
     VEC3 tau_des;
-    tau_des << 0.4, -0.3, Robot::workingHeight;
+    tau_des << pose(0), pose(1), Robot::workingHeight;
     Controller::redundantController(ur5, tau_des);
     ros::spinOnce();
     loop_rate.sleep();
@@ -55,9 +83,9 @@ int main(int argc, char **argv)
 
     ROS_INFO_STREAM("STARTING discensa");
     SE3 T_des;
-    T_des <<    1, 0, 0, 0.4,
-                0, 1, 0, -0.3,
-                0, 0, 1, 0.6,
+    T_des <<    1, 0, 0, pose(0,0),
+                0, 1, 0, pose(1,0),
+                0, 0, 1, pose(2,0),
                 0, 0, 0, 1;
     VEC6 q_des;
     q_des = ur5.inverseKinematics(T_des);
