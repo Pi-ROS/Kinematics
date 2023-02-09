@@ -1,7 +1,15 @@
 #include "../include/robot.hpp"
 #include "../include/se3.hpp"
 #include "../include/ros.hpp"
+#include "../include/config.hpp"
+#include <ros/ros.h>
 #include <cmath>
+
+/**
+ * @brief: converts an opening diameter to an actual joint configuration.
+*/
+
+VEC3 gripperOpeningToJointConfig(double d);
 
 /**
  * @brief: Constructor for the Robot class.
@@ -344,3 +352,38 @@ void Controller::redundantControllerRotation(Robot &r, VEC3 &rpy_f){
     r.q = q_k;
 }
 */
+
+void Robot::moveGripper(double d, int N, double dt) {
+    VEC3 q_des = gripperOpeningToJointConfig(d);
+    VEC3 incr = (q_des - q_gripper) / N;
+    ros::Rate loop_rate(1/dt);
+
+    VEC3 q_gripper_k = q_gripper + incr * dt;
+    for (int i=0; i<N; ++i) {
+        publishJointsAndGripper(pub_jstate, q, q_gripper_k);
+        q_gripper = q_gripper_k;
+        q_gripper_k += incr * dt;
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+}
+
+#if SOFT_GRIPPER
+VEC3 gripperOpeningToJointConfig(double d)
+{
+    double D0 = 40;
+    double L = 60;
+    double opening = atan2(0.5*(d - D0), L);
+    VEC3 q;
+    q << opening, opening, 0;
+    return q;
+}
+#else
+VEC3 gripperOpeningToJointConfig(double d)
+{
+    double opening = (d - 22) / 108 * -M_PI + M_PI;
+    VEC3 q;
+    q << opening, opening, opening;
+    return q;
+}
+#endif

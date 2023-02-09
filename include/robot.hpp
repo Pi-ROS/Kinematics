@@ -30,6 +30,11 @@ public:
     JointStateVector q_home;
 
     /**
+     * @brief Current configuration of the gripper
+    */
+    VEC3 q_gripper;
+
+    /**
      * @brief Construct a new Robot object
     */
 
@@ -97,6 +102,14 @@ public:
      * 
      */
     void lineSearch(SE3 T_des);
+
+    /**
+     * @brief Moves the gripper to the desired opening diameter.
+     * @param d the desired opening diameter
+     * @param N number of steps to complete the movement
+     * @param dT duration of a single step
+    */
+    void moveGripper(double d, int N, double dt);
 };
 
 class Controller{
