@@ -397,11 +397,11 @@ void Robot::moveGripper(double d, int N, double dt) {
     VEC3 incr = (q_des - q_gripper) / N;
     ros::Rate loop_rate(1/dt);
 
-    VEC3 q_gripper_k = q_gripper + incr * dt;
+    VEC3 q_gripper_k = q_gripper + incr;
     for (int i=0; i<N; ++i) {
         publishJointsAndGripper(pub_jstate, q, q_gripper_k);
         q_gripper = q_gripper_k;
-        q_gripper_k += incr * dt;
+        q_gripper_k += incr;
         ros::spinOnce();
         loop_rate.sleep();
     }

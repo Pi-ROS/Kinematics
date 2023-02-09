@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("HO FINITO discesa");
     ros::Duration(0.5).sleep();
 
-    ur5.moveGripper(30, 0.2, 10);
+    ur5.moveGripper(30, 10, 0.1);
     ROS_INFO_STREAM("HO FINITO chiusura pinza");
     ros::Duration(0.5).sleep();
 
