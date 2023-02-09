@@ -3,6 +3,18 @@
 #include "../include/ros.hpp"
 #include <cmath>
 
+#include <Eigen/Dense>
+
+
+constexpr double Robot::d1;
+constexpr double Robot::a2;
+constexpr double Robot::a3;
+constexpr double Robot::d4;
+constexpr double Robot::d5;
+constexpr double Robot::d6;
+constexpr double Robot::workingHeight;
+constexpr double Controller::dt;
+constexpr double Controller::T;
 /**
  * @brief: Constructor for the Robot class.
  * @param: q - the joint state vector
@@ -302,6 +314,30 @@ VEC6 Controller::computeQ0dot(VEC6 q){
     return result;
 }
 
+
+template <class MatT>
+Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
+pseudoinverse(const MatT &mat, typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4}) // choose appropriately
+{
+    typedef typename MatT::Scalar Scalar;
+    auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
+    const auto &singularValues = svd.singularValues();
+    Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
+    singularValuesInv.setZero();
+    for (unsigned int i = 0; i < singularValues.size(); ++i) {
+        if (singularValues(i) > tolerance)
+        {
+            singularValuesInv(i, i) = Scalar{1} / singularValues(i);
+        }
+        else
+        {
+            singularValuesInv(i, i) = Scalar{0};
+        }
+    }
+    return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
+}
+
+
 VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
     MAT36 Jtras;
     // translation
@@ -314,7 +350,7 @@ VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
     //          Jac(4,0), Jac(4,1), Jac(4,2), Jac(4,3), Jac(4,4), Jac(4,5),
     //          Jac(5,0), Jac(5,1), Jac(5,2), Jac(5,3), Jac(5,4), Jac(5,5);
     VEC6 q0dot = computeQ0dot(q);
-    Eigen::MatrixXd JtransInv = Jtras.completeOrthogonalDecomposition().pseudoInverse();
+    Eigen::MatrixXd JtransInv = pseudoinverse(Jtras);
     VEC6 qdot = JtransInv * vd + (Eigen::Matrix<double, 6, 6>::Identity() - JtransInv * Jtras) * q0dot;
     return qdot;
 }
