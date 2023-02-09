@@ -5,6 +5,16 @@
 #include <ros/ros.h>
 #include <cmath>
 
+constexpr double Robot::d1;
+constexpr double Robot::a2;
+constexpr double Robot::a3;
+constexpr double Robot::d4;
+constexpr double Robot::d5;
+constexpr double Robot::d6;
+constexpr double Robot::workingHeight;
+constexpr double Controller::dt;
+constexpr double Controller::T;
+
 /**
  * @brief: converts an opening diameter to an actual joint configuration.
 */
@@ -21,6 +31,11 @@ Robot::Robot(JointStateVector q)
     (this->q).resize(6);
     this->q = q;
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+    #if SOFT_GRIPPER
+    q_gripper << 0.0, 0.0, 0.0;
+    #else
+    q_gripper << 1.8, 1.8, 1.8;
+    #endif
 }
 
 /**
