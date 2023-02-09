@@ -3,6 +3,16 @@
 #include "../include/ros.hpp"
 #include <cmath>
 
+constexpr double Robot::d1;
+constexpr double Robot::a2;
+constexpr double Robot::a3;
+constexpr double Robot::d4;
+constexpr double Robot::d5;
+constexpr double Robot::d6;
+constexpr double Robot::workingHeight;
+constexpr double Controller::dt;
+constexpr double Controller::T;
+
 /**
  * @brief: Constructor for the Robot class.
  * @param: q - the joint state vector
