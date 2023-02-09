@@ -15,6 +15,7 @@ constexpr double Robot::d6;
 constexpr double Robot::workingHeight;
 constexpr double Controller::dt;
 constexpr double Controller::T;
+
 /**
  * @brief: Constructor for the Robot class.
  * @param: q - the joint state vector
