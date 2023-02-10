@@ -22,4 +22,7 @@ void publishJoints(ros::Publisher &pub, JointStateVector &data);
 void readJoints(const sensor_msgs::JointState::ConstPtr& msg);
 void readJointsDebug(const std_msgs::Float64MultiArray::ConstPtr& msg);
 
+/* RESIZING */
+
+
 #endif

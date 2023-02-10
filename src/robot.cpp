@@ -25,7 +25,8 @@ Robot::Robot(JointStateVector q)
 {
     (this->q).resize(6);
     this->q = q;
-    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+    
+    this->pose = SE3Operations::tau(this->forwardKinematics(q));
 }
 
 /**
@@ -211,6 +212,48 @@ void Robot::homingProcedure(double dt, double v_des, VEC6 q_des)
     }
 }
 
+void Robot::move(VEC3 &pose){
+
+    ROS_INFO_STREAM("STARTING spostamento piano");
+    ros::Rate loop_rate(LOOP_FREQUENCY);
+    VEC3 tau_des;
+    tau_des << pose(0), pose(1), Robot::workingHeight;
+
+    Controller::redundantController(*this, tau_des);
+    ros::spinOnce();
+    loop_rate.sleep();
+
+    this->pose = pose;
+    ros::Duration(0.5).sleep(); 
+    ROS_INFO_STREAM("FINISH spostamento piano");
+}
+
+void Robot::descent(double h){
+    ROS_INFO_STREAM("STARTING discensa");
+    ros::Rate loop_rate(LOOP_FREQUENCY);
+    VEC6 back = this->q;
+
+    
+    SE3 T_des;
+    T_des <<    1, 0, 0, this->pose(0,0),
+                0, 1, 0, this->pose(1,0),
+                0, 0, 1, h,
+                0, 0, 0, 1;
+    VEC6 q_des;
+    q_des = this->inverseKinematics(T_des);
+    this->q = q_des;
+    publishJoints(pub_jstate, q_des);
+    ros::spinOnce();
+    loop_rate.sleep();
+
+    ROS_INFO_STREAM("FINISH discensa");
+
+    ros::Duration(0.5).sleep();
+    publishJoints(pub_jstate, back);
+    ros::Duration(0.5).sleep(); 
+}
+
+
 void Robot::lineSearch(SE3 T_des){
     ros::Rate loop_rate(10);
     SE3 T_curr = forwardKinematics(q);
@@ -270,8 +313,10 @@ void Robot::lineSearch(SE3 T_des){
     q = q_k;
 }
 
+
+
 void Controller::redundantController(Robot &r, VEC3 &x_f){
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(1/Controller::dt);
     VEC3 x_0 = SE3Operations::tau(r.forwardKinematics(r.q));
     VEC3 v_des = (x_f - x_0) / Controller::T;
     int N = Controller::T / Controller::dt;
@@ -355,6 +400,7 @@ VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
     VEC6 qdot = JtransInv * vd + (Eigen::Matrix<double, 6, 6>::Identity() - JtransInv * Jtras) * q0dot;
     return qdot;
 }
+
 
 /*
 void Controller::redundantControllerRotation(Robot &r, VEC3 &rpy_f){
