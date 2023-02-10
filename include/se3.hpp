@@ -6,8 +6,8 @@
 typedef Eigen::Matrix<double, 4, 4> SE3;
 typedef Eigen::Matrix<double, 3, 3> SO3;
 typedef Eigen::Matrix<double, 3, 1> VEC3;
-typedef Eigen::Matrix<double, 6, 1> JointStateVector;
 typedef Eigen::Matrix<double, 6, 1> VEC6;
+typedef Eigen::Matrix<double, 9, 1> VEC9;
 typedef Eigen::Matrix<double, 6, 6> MAT6;
 typedef Eigen::Matrix<double, 3, 6> MAT36;
 typedef Eigen::Matrix<double, 6, 3> MAT63;

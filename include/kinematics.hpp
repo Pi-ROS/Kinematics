@@ -8,7 +8,7 @@
 static bool DEBUG = false;
 
 
-JointStateVector data_read;
+VEC9 data_read;
 ros::Publisher pub_jstate;
 ros::Subscriber sub_jstate;
 

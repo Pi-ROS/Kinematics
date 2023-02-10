@@ -16,14 +16,7 @@ static std::string joint_state_subscriber_topic = "/ur5/joint_states";
 extern ros::Publisher pub_jstate;
 extern ros::Subscriber sub_jstate;
 
-extern JointStateVector data_read; // defined in kinematics.hpp
-
-/**
- * @brief Publishes the joints configurations
- * @param pub Publisher
- * @param data Joints configuration
-*/
-void publishJoints(ros::Publisher &pub, JointStateVector &data);
+extern VEC9 data_read; // defined in kinematics.hpp
 
 /**
  * @brief Publishes the joints and gripper configurations
@@ -31,7 +24,7 @@ void publishJoints(ros::Publisher &pub, JointStateVector &data);
  * @param qJ Joints configuration
  * @param qG Gripper configuration
 */
-void publishJointsAndGripper(ros::Publisher &pub, JointStateVector &qJ, VEC3 &qG);
+void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG);
 
 /**
  * @brief Reads the current configurations of the joints

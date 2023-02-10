@@ -25,8 +25,8 @@ public:
     /**
      * @brief Current configuration of the joints
     */
-    JointStateVector q;
-    JointStateVector q_home;
+    VEC6 q;
+    VEC6 q_home;
     VEC3 pose;
 
     /**
@@ -38,7 +38,7 @@ public:
      * @brief Construct a new Robot object
     */
 
-    Robot(JointStateVector q);
+    Robot(VEC6 q);
     /**
      * @brief Transformation matrix from frame 0 to frame 1
     */
@@ -75,18 +75,20 @@ public:
     */
     MAT6 jacobian(VEC6 q);
 
+    void updateState();
+
     /**
      * @brief Forward kinematics
      * @param q Joint state vector
      */
-    SE3 forwardKinematics(JointStateVector &q);
+    SE3 forwardKinematics(VEC6 &q);
 
    /**
     * @brief Inverse kinematics
     * @param T_des Desired end-effector transformation
     * @return Joint state vector
    */
-    JointStateVector inverseKinematics(SE3 &T_des);
+    VEC6 inverseKinematics(SE3 &T_des);
 
     /**
      * @brief Move the robot
@@ -95,7 +97,7 @@ public:
      * @param v_ref Desired velocity
      * @param q_des Desired joint state vector 
      */
-    void homingProcedure(double dt, double v_des, VEC6 q_des);
+    void velocityController(double dt, double v_des, VEC6 q_des);
 
     /**
      * @brief 
@@ -111,7 +113,7 @@ public:
     */
     void moveGripper(double d, int N, double dt);
     void move(VEC3 &pose);
-    void descent(double h);
+    void descent(double h, double rotation);
 };
 
 class Controller{

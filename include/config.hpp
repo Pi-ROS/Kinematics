@@ -4,7 +4,10 @@
 #include <Eigen/Dense>
 
 #define SIMULATION true
-#define SOFT_GRIPPER false
+#define USE_GRIPPER true
+#define SOFT_GRIPPER true
+
+
 static Eigen::Matrix<double, 6, 1> Q_HOME;
 
 inline void initConfig() {
