@@ -2,7 +2,6 @@
 #define JACOBIAN_HPP
 
 #include <Eigen/Dense>
-// #include "kinematics.hpp"
 #include "se3.hpp"
 
 class Robot

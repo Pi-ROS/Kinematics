@@ -30,7 +30,7 @@ int main(int argc, char **argv)
         //sub_jstate = node.subscribe(joint_state_subscriber_topic, 1000, readJoints);
     }
 
-    /* zed camera service
+    /* zed camera service*/
     ros::ServiceClient client = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
     pijoint_vision::ObjectDetection detection_srv;
     
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     if (client.call(detection_srv))
     {
-        if(detection_srv.response.success)
+        if(detection_srv.response.success && detection_srv.response.l > 0)
         {
             ROS_INFO_STREAM("Object detected");
             obj = detection_srv.response.objects[0];
@@ -54,8 +54,10 @@ int main(int argc, char **argv)
             ROS_INFO_STREAM("Object not detected");
         }
     }
-
-    */
+    else
+    {
+        ROS_INFO_STREAM("Failed to call service");
+    }
 
     ros::Rate loop_rate(LOOP_FREQUENCY);
     ros::spinOnce();
@@ -66,7 +68,6 @@ int main(int argc, char **argv)
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
     Robot ur5(q_home);
     
-    VEC3 pose;
     pose << -0.24, -0.24, 0.60;
     ur5.move(pose);
     ur5.descent(0.6);
