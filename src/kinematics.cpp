@@ -66,6 +66,7 @@ int main(int argc, char **argv)
 
     VEC6 q_home;
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+
     Robot ur5(q_home);
     
     pose << -0.24, -0.24, 0.60;

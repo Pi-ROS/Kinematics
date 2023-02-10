@@ -18,7 +18,25 @@ extern ros::Subscriber sub_jstate;
 
 extern JointStateVector data_read; // defined in kinematics.hpp
 
+/**
+ * @brief Publishes the joints configurations
+ * @param pub Publisher
+ * @param data Joints configuration
+*/
 void publishJoints(ros::Publisher &pub, JointStateVector &data);
+
+/**
+ * @brief Publishes the joints and gripper configurations
+ * @param pub Publisher
+ * @param qJ Joints configuration
+ * @param qG Gripper configuration
+*/
+void publishJointsAndGripper(ros::Publisher &pub, JointStateVector &qJ, VEC3 &qG);
+
+/**
+ * @brief Reads the current configurations of the joints
+ * @param msg Memory location where the message will be copied
+*/
 void readJoints(const sensor_msgs::JointState::ConstPtr& msg);
 void readJointsDebug(const std_msgs::Float64MultiArray::ConstPtr& msg);
 
