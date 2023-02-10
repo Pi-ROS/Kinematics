@@ -2,7 +2,6 @@
 #define JACOBIAN_HPP
 
 #include <Eigen/Dense>
-// #include "kinematics.hpp"
 #include "se3.hpp"
 
 class Robot
@@ -28,6 +27,7 @@ public:
     */
     JointStateVector q;
     JointStateVector q_home;
+    VEC3 pose;
 
     /**
      * @brief Current configuration of the gripper
@@ -110,6 +110,8 @@ public:
      * @param dT duration of a single step
     */
     void moveGripper(double d, int N, double dt);
+    void move(VEC3 &pose);
+    void descent(double h);
 };
 
 class Controller{
@@ -132,7 +134,7 @@ class Controller{
     static constexpr double q6max = 0;
     static constexpr double q6avg = M_PI / 2.0;
 public:
-    static constexpr double dt = 0.1;
+    static constexpr double dt = 0.001;
     static constexpr double T = 2;
     static void redundantController(Robot &r, VEC3 &x_f);
     static VEC6 computeQ0dot(VEC6 q);
@@ -145,6 +147,9 @@ public:
      * @param rpy_f roll, pitch, yaw of the final position
      */
     static void redundantControllerRotation(Robot &r, VEC3 &rpy_f);
+    
+    
+
 };
 
 

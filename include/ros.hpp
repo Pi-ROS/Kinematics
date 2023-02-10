@@ -40,4 +40,7 @@ void publishJointsAndGripper(ros::Publisher &pub, JointStateVector &qJ, VEC3 &qG
 void readJoints(const sensor_msgs::JointState::ConstPtr& msg);
 void readJointsDebug(const std_msgs::Float64MultiArray::ConstPtr& msg);
 
+/* RESIZING */
+
+
 #endif

@@ -1,9 +1,8 @@
 #ifndef KINEMATICS_HPP
 #define KINEMATICS_HPP
 
-#include "robot.hpp"
 #include "ros.hpp"
-#include "se3.hpp"
+#include "robot.hpp"
 #include <string>
 
 static bool DEBUG = false;
