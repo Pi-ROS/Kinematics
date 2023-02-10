@@ -113,7 +113,7 @@ public:
     */
     void moveGripper(double d, int N, double dt);
     void move(VEC3 &pose);
-    void descent(double h, double rotation);
+    void descent(double h, double rotation, bool pick);
 };
 
 class Controller{

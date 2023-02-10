@@ -73,12 +73,20 @@ int main(int argc, char **argv)
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
 
     Robot ur5(q_home);
+    ur5.moveGripper(100, 10, 0.01);
 
-    // pose << -0.24, -0.24, 0.60;
+    //pose << -0.24, -0.24, 0.60;
     ur5.move(pose);
-    ur5.descent(0.7, block_rotation);
+    ROS_INFO_STREAM("BLOCK ROATION" << block_rotation);
+    ur5.descent(0.73, block_rotation, true);
     // TODO sleed in maniera piú furba
     // ur5.descend(0.6);
+
+
+    ROS_INFO_STREAM("CI SPOSTIAMOOOOOOO");
+    pose << 0.24, -0.24, 0.60;
+    ur5.move(pose);
+    ur5.descent(0.73, M_PI/2, false);
 
     while (ros::ok())
     {

@@ -226,7 +226,7 @@ void Robot::velocityController(double dt, double v_des, VEC6 q_des)
             ros::spinOnce();
         }
         rate.sleep();
-        if (e_norm < 0.1)
+        if (e_norm < 0.001)
         {
             publishJoints(pub_jstate, q_des, q_gripper);
             ros::spinOnce();
@@ -259,7 +259,7 @@ void Robot::move(VEC3 &pose){
     ROS_INFO_STREAM("FINISH spostamento piano");
 }
 
-void Robot::descent(double h, double rotation){
+void Robot::descent(double h, double rotation, bool pick){
     ROS_INFO_STREAM("STARTING discensa");
     ros::Rate loop_rate(LOOP_FREQUENCY);
     VEC6 back = this->q;
@@ -288,9 +288,14 @@ void Robot::descent(double h, double rotation){
     ROS_INFO_STREAM("FINISH discensa");
 
     // moving gripper
-    this->moveGripper(30, 10, 0.1);
-    ROS_INFO_STREAM("Gripper closed");
-    ros::Duration(5).sleep();
+    if(pick){
+        this->moveGripper(15, 10, 0.1);
+        ROS_INFO_STREAM("Gripper closed");
+    } else{
+        this->moveGripper(100, 10, 0.1);
+        ROS_INFO_STREAM("Gripper opened");
+    }
+    ros::Duration(1).sleep();
 
 
     ROS_INFO_STREAM("posiz:\n" << q);
