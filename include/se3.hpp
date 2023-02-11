@@ -1,6 +1,7 @@
 #ifndef SE3_HPP
 #define SE3_HPP
 
+
 #include <Eigen/Dense>
 
 typedef Eigen::Matrix<double, 4, 4> SE3;
@@ -11,7 +12,6 @@ typedef Eigen::Matrix<double, 9, 1> VEC9;
 typedef Eigen::Matrix<double, 6, 6> MAT6;
 typedef Eigen::Matrix<double, 3, 6> MAT36;
 typedef Eigen::Matrix<double, 6, 3> MAT63;
-
 
 class SE3Operations{
     public:

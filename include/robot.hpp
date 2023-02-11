@@ -1,8 +1,35 @@
 #ifndef JACOBIAN_HPP
 #define JACOBIAN_HPP
 
+#include "config.hpp"
 #include <Eigen/Dense>
 #include "se3.hpp"
+#include <cmath>
+
+class Joints{
+
+public:
+    double shoulder_lift;
+    double shoulder_pan;
+    double elbow;
+    double wrist_1;
+    double wrist_2;
+    double wrist_3;
+
+    double hand_1;
+    double hand_2;
+    double hand_3;
+
+    Joints() = default;
+    Joints(VEC6 q, VEC3 gripper);
+    VEC6 q();
+    VEC3 q_gripper();
+    void update();
+    void update(VEC6 q);
+    void update(VEC3 gripper);
+    void update(VEC6 q, VEC3 gripper);
+};
+
 
 class Robot
 {
@@ -21,23 +48,26 @@ private:
 public:
     
     static constexpr double workingHeight =  0.4550;
+    static constexpr double descentHeight =  0.70;
+
+    Joints joints;
 
     /**
      * @brief Current configuration of the joints
     */
-    VEC6 q;
+    //VEC6 q;
     VEC6 q_home;
     VEC3 pose;
 
     /**
      * @brief Current configuration of the gripper
     */
-    VEC3 q_gripper;
+    //VEC3 q_gripper;
 
     /**
      * @brief Construct a new Robot object
     */
-
+    Robot() = default;
     Robot(VEC6 q);
     /**
      * @brief Transformation matrix from frame 0 to frame 1
@@ -75,8 +105,6 @@ public:
     */
     MAT6 jacobian(VEC6 q);
 
-    void updateState();
-
     /**
      * @brief Forward kinematics
      * @param q Joint state vector
@@ -89,22 +117,6 @@ public:
     * @return Joint state vector
    */
     VEC6 inverseKinematics(SE3 &T_des);
-
-    /**
-     * @brief Move the robot
-     * 
-     * @param dt Time step
-     * @param v_ref Desired velocity
-     * @param q_des Desired joint state vector 
-     */
-    void velocityController(double dt, double v_des, VEC6 q_des);
-
-    /**
-     * @brief 
-     * 
-     */
-    void lineSearch(SE3 T_des);
-
     /**
      * @brief Moves the gripper to the desired opening diameter.
      * @param d the desired opening diameter
@@ -150,7 +162,14 @@ public:
      */
     static void redundantControllerRotation(Robot &r, VEC3 &rpy_f);
     
-    
+    /**
+     * @brief Move the robot
+     * 
+     * @param dt Time step
+     * @param v_ref Desired velocity
+     * @param q_des Desired joint state vector 
+     */
+    static void velocityController(Robot &r, double dt, double v_des, VEC6 q_des);
 
 };
 
