@@ -8,8 +8,8 @@
                 "${workspaceFolder}/include/tasks/**",
                 "/usr/include/eigen3",
                 "/opt/ros/noetic/include",
-                "/home/alemmi/ros_ws/install/include/pijoint_vision/**",
-                "/home/alemmi/ros_ws/install/include"
+                "~/ros_ws/install/include/pijoint_vision/**",
+                "~/ros_ws/install/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
