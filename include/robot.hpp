@@ -48,7 +48,7 @@ private:
 public:
     
     static constexpr double workingHeight =  0.4550;
-    static constexpr double descentHeight =  0.70;
+    static constexpr double descentHeight =  0.71;
 
     Joints joints;
 
