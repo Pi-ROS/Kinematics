@@ -1,38 +1,36 @@
 #include "kinematics.hpp"
+#include "tasks/task1.hpp"
+
+
+
 
 int main(int argc, char **argv)
 {
     VEC6 joint_pos;
     joint_pos.resize(6);
-    data_read.resize(6);
-
-    ros::init(argc, argv, "kinematics");
 
     ROS_INFO_STREAM("STARTING KINEMATICS NODE");
-    if (argc == 2)
-    {
-        DEBUG = true;
-        ROS_INFO_STREAM("--- DEBUG MODE ---");
-    }
-
-    ros::NodeHandle node;
-
-    if (DEBUG)
-    {
-        pub_jstate = node.advertise<std_msgs::Float64MultiArray>(debug_topic, 10);
-        // sub_jstate = node.subscribe(debug_topic, 1000, readJointsDebug);
-    }
-    else
-    {
-        pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_publisher_topic, 10);
-        sub_jstate = node.subscribe(joint_state_subscriber_topic, 1000, readJoints);
-    }
+    ros::init(argc, argv, "kinematics");
+    ros::NodeHandle node; 
+    pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_publisher_topic, 10);
 
     /* zed camera service*/
-    ros::ServiceClient client = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
-    
-    client.waitForExistence();
+    ros::ServiceClient detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
+    detect.waitForExistence();
 
+    
+    // DEPLOY SERVICE
+
+    VEC6 q_home;
+    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+
+    ur5 = Robot(q_home);
+
+    ur5.moveGripper(180, 10, 0.1);
+
+    task1(detect);
+
+    /*
     pijoint_vision::Object obj;
     VEC3 pose;
     double block_rotation;
@@ -69,10 +67,7 @@ int main(int argc, char **argv)
     ros::spinOnce();
     loop_rate.sleep();
 
-    VEC6 q_home;
-    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
-
-    Robot ur5(q_home);
+    
     ur5.moveGripper(100, 10, 0.01);
 
     //pose << -0.24, -0.24, 0.60;
@@ -93,5 +88,6 @@ int main(int argc, char **argv)
         loop_rate.sleep();
     }
 
-    return 0;
+    return 0;*/
+    ros::spin();
 }

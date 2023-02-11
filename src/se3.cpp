@@ -1,5 +1,5 @@
 #include "../include/se3.hpp"
-#include <cmath>
+
 
 
 SE3 SE3Operations::Rx(double th) {
@@ -142,3 +142,5 @@ VEC6 SE3Operations::to6D(SE3 v){
     ret << tras, rot;
     return ret;
 }
+
+

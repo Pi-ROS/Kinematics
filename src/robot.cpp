@@ -26,17 +26,82 @@ VEC3 gripperOpeningToJointConfig(double d);
  * @param: q - the joint state vector
  */
 
+Joints::Joints(VEC6 q, VEC3 gripper){
+    this->update(q, gripper);
+}
+
+VEC6 Joints::q(){
+    VEC6 q;
+    q << this->shoulder_pan, this->shoulder_lift, this->elbow,
+            this->wrist_1, this->wrist_2, this->wrist_3;
+    return q;
+    
+}
+VEC3 Joints::q_gripper(){
+    VEC3 gripper;
+    gripper << this->hand_1, this->hand_2, this->hand_3;
+    return gripper;
+    
+}
+
+void Joints::update(){
+    VEC9 joints = readJoints();
+
+    this->shoulder_pan = joints[0];
+    this->shoulder_lift = joints[1];
+    this->elbow = joints[2];
+    this->wrist_1 = joints[3];
+    this->wrist_2 = joints[4];
+    this->wrist_3 = joints[5];
+    this->hand_1 = joints[6];
+    this->hand_2 = joints[7];
+    this->hand_3 = joints[8];
+
+}
+
+
+void Joints::update(VEC6 q){
+    this->shoulder_pan = q[0];
+    this->shoulder_lift = q[1];
+    this->elbow = q[2];
+    this->wrist_1 = q[3];
+    this->wrist_2 = q[4];
+    this->wrist_3 = q[5];
+}
+
+void Joints::update(VEC3 gripper){
+    this->hand_1 = gripper[0];
+    this->hand_2 = gripper[1];
+    this->hand_3 = gripper[2];
+}
+
+void Joints::update(VEC6 q, VEC3 gripper){
+    this->shoulder_pan = q[0];
+    this->shoulder_lift = q[1];
+    this->elbow = q[2];
+    this->wrist_1 = q[3];
+    this->wrist_2 = q[4];
+    this->wrist_3 = q[5];
+
+    this->hand_1 = gripper[0];
+    this->hand_2 = gripper[1];
+    this->hand_3 = gripper[2];
+}
+
 Robot::Robot(VEC6 q)
 {
-    (this->q).resize(6);
-    this->q = q;
+
+    VEC3 gripper;
+
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+
     #if SOFT_GRIPPER
-    q_gripper << 0.0, 0.0, 0.0;
+    gripper << 0.0, 0.0, 0.0;
     #else
-    q_gripper << 1.8, 1.8, 1.8;
+    gripper << 1.8, 1.8, 1.8;
     #endif
-    
+
+    this->joints = Joints(q, gripper);
     this->pose = SE3Operations::tau(this->forwardKinematics(q));
 }
 
@@ -105,17 +170,6 @@ SE3 Robot::T56(double theta6)
     return tmp;
 }
 
-void Robot::updateState(){
-    ros::spinOnce();
-    for(int i=0; i < 6; i++){
-        this->q(i) = data_read(i);
-    }
-    #if USE_GRIPPER
-    for(int i=6; i < 9; i++){
-        this->q_gripper(i-6) = data_read(i);
-    }
-    #endif
-}
 
 /**
  * @brief: Forward kinematics
@@ -143,6 +197,7 @@ SE3 Robot::forwardKinematics(VEC6 &q)
 
 MAT6 Robot::jacobian(VEC6 q)
 {
+    // TODO current(?)
     Eigen::Matrix<double, 6, 6> J;
     double s1 = sin(q(0, 0));
     double c1 = cos(q(0, 0));
@@ -177,7 +232,7 @@ MAT6 Robot::jacobian(VEC6 q)
 VEC6 Robot::inverseKinematics(SE3 &T_des)
 {
     int i = 0;
-    VEC6 q_k = q;
+    VEC6 q_k = this->joints.q();
 
     while (i < LM::maxIterations)
     {
@@ -203,38 +258,9 @@ VEC6 Robot::inverseKinematics(SE3 &T_des)
         q_k = q_k + Ak.inverse() * gk;
         i++;
     }
+    
+    normalize(q_k);
     return q_k;
-}
-
-void Robot::velocityController(double dt, double v_des, VEC6 q_des)
-{   
-    ROS_INFO_STREAM("Starting to move");
-    double v_ref = 0.0;
-    VEC6 q_k = q;
-    VEC6 e;
-    double e_norm;
-    ros::Rate rate(1 / dt);
-    while (true)
-    {
-        e = q_des - q_k;
-        e_norm = e.norm();
-        if (e_norm != 0.0)
-        {
-            v_ref += 0.005 * (v_des - v_ref);
-            q_k += dt * v_ref * e / e_norm;
-            publishJoints(pub_jstate, q_k, q_gripper);
-            ros::spinOnce();
-        }
-        rate.sleep();
-        if (e_norm < 0.001)
-        {
-            publishJoints(pub_jstate, q_des, q_gripper);
-            ros::spinOnce();
-            ROS_INFO_STREAM("Reached the desired position");
-            updateState();
-            break;
-        }
-    }
 }
 
 
@@ -243,156 +269,106 @@ void Robot::move(VEC3 &pose){
 
     ROS_INFO_STREAM("STARTING spostamento piano");
     ros::Rate loop_rate(LOOP_FREQUENCY);
+
     VEC3 tau_des;
     tau_des << pose(0), pose(1), Robot::workingHeight;
 
     Controller::redundantController(*this, tau_des);
-    ros::spinOnce();
     loop_rate.sleep();
 
     this->pose = pose;
     // TODO : aggiornare posizione leggendo quando arrivato in posizione
     ros::Duration(0.5).sleep(); 
 
-    this->updateState();
-
+    this->joints.update();
     ROS_INFO_STREAM("FINISH spostamento piano");
 }
 
 void Robot::descent(double h, double rotation, bool pick){
-    ROS_INFO_STREAM("STARTING discensa");
-    ros::Rate loop_rate(LOOP_FREQUENCY);
-    VEC6 back = this->q;
+    
 
+    ros::Rate loop_rate(LOOP_FREQUENCY);
+    VEC6 back = this->joints.q();
+    VEC6 q_des;
+    SE3 T_des;
 
     //ROS_INFO_STREAM("status:\n" << this->q << std::endl << q_gripper << std::endl << pose);
-
     
-    SE3 T_des;
     T_des <<    cos(rotation), -sin(rotation), 0, pose(0),
                 sin(rotation), cos(rotation),  0, pose(1),
                 0, 0, 1, h,
                 0, 0, 0, 1;
+    
 
-    // T_des <<    1, 0, 0, pose(0),
-    //             0, 1, 0, pose(1),
-    //             0, 0, 1, h,
-    //             0, 0, 0, 1;
-
-    VEC6 q_des;
+    ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
-    velocityController(Controller::dt, 1, q_des);
-    // publishJoints(pub_jstate, q_des, q_gripper);
-    // ros::spinOnce();
-    // ros::Duration(2).sleep();
+    Controller::velocityController(*this, Controller::dt, 1, q_des);
     ROS_INFO_STREAM("FINISH discensa");
-
+   
     // moving gripper
     if(pick){
-        this->moveGripper(15, 10, 0.1);
+        this->moveGripper(50, 10, 0.1);
         ROS_INFO_STREAM("Gripper closed");
     } else{
-        this->moveGripper(100, 10, 0.1);
+        this->moveGripper(180, 10, 0.1);
         ROS_INFO_STREAM("Gripper opened");
     }
+    
     ros::Duration(1).sleep();
 
-
-    ROS_INFO_STREAM("posiz:\n" << q);
-
     ROS_INFO_STREAM("START salita");
-    velocityController(Controller::dt, 1, back);
-    // publishJoints(pub_jstate, back, q_gripper);
-    // ros::spinOnce();
-    // ros::Duration(2).sleep();
+    Controller::velocityController(*this, Controller::dt, 1, back);
     ROS_INFO_STREAM("FINISH salita");
 }
 
-
-void Robot::lineSearch(SE3 T_des){
-    ros::Rate loop_rate(10);
-    SE3 T_curr = forwardKinematics(q);
-
-    VEC6 initialError = LM::error(T_curr, T_des);
-    VEC3 initialTransError;
-    initialTransError << initialError(0), initialError(1), initialError(2);
-
-    // Number of intermediate points
-    int N = initialTransError.norm() * 7;
-    VEC6 increment = initialError / N;
-    VEC6 v_des = SE3Operations::to6D(T_curr) + increment;
-    VEC6 q_k = q;
-    double E;
-    VEC6 e;
-    Eigen::Matrix<double, 6, 6> Jk;
-    Eigen::Matrix<double, 6, 6> Ak;
-    VEC6 gk;
-    for (int j = 0; j < N; j++)
-    {
-        /* IK */
-        int i = 0;
-        
-        while (i < LM::maxIterations)
-        {
-
-            // Current pose of the end-effector
-            SE3 T_k = forwardKinematics(q_k);
-            VEC6 v_k = SE3Operations::to6D(T_k);
-            // Error vector
-            e = v_des - v_k;
-            // Error scalar
-            double e_norm = e.norm();
-            E = e_norm * e_norm * 0.5;
-
-            if (E < LM::errTresh)
-            {
-                break;
-            }
-
-            Jk = jacobian(q_k);
-            Ak = LM::Ak(Jk, E);
-            gk = LM::gk(Jk, e);
-
-            // Update the joint state vector
-            q_k = q_k + Ak.inverse() * gk;
-            
-            i++;
-        }
-        
-        v_des += increment;
-
-        publishJoints(pub_jstate, q_k, q_gripper);
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-    q = q_k;
-}
-
-
-
 void Controller::redundantController(Robot &r, VEC3 &x_f){
     ros::Rate loop_rate(1/Controller::dt);
-    VEC3 x_0 = SE3Operations::tau(r.forwardKinematics(r.q));
-    VEC3 v_des = (x_f - x_0) / Controller::T;
+    VEC6 q_k = r.joints.q();
+    VEC3 q_gripper = r.joints.q_gripper();
+
+    VEC3 x_0 = SE3Operations::tau(r.forwardKinematics(q_k));
+    VEC3 x_e = x_0; // x_e: current position
+    VEC3 x_des; // x_des: desired (next) position
+    VEC3 v_des = (x_f - x_0) / Controller::T;    
+       
     int N = Controller::T / Controller::dt;
-    VEC6 q_k = r.q;
-    VEC3 x_des;
-    VEC3 x_e = x_0;
-    // x_e: current position
-    // x_des: desired (next) position
     for(int i = 1; i <= N; i++){
         x_des = x_e + v_des * Controller::dt;
         MAT6 jac = r.jacobian(q_k);
         VEC6 q0dot = Controller::computeQ0dot(q_k);
         VEC6 qdot = Controller::computeQdot(jac, q_k, x_e, x_des, v_des);
         q_k = q_k + qdot * Controller::dt;
-        publishJoints(pub_jstate, q_k, r.q_gripper);
-        ros::spinOnce();
+        publishJoints(pub_jstate, q_k, q_gripper);
+       
         loop_rate.sleep();
         x_e = x_des;
     }
-    r.q = q_k;
+    r.joints.update(q_k);
 }
+
+template <class MatT>
+Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
+pseudoinverse(const MatT &mat) // choose appropriately
+{   
+    typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4};
+    typedef typename MatT::Scalar Scalar;
+    auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
+    const auto &singularValues = svd.singularValues();
+    Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
+    singularValuesInv.setZero();
+    for (unsigned int i = 0; i < singularValues.size(); ++i) {
+        if (singularValues(i) > tolerance)
+        {
+            singularValuesInv(i, i) = Scalar{1} / singularValues(i);
+        }
+        else
+        {
+            singularValuesInv(i, i) = Scalar{0};
+        }
+    }
+    return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
+}
+
 
 VEC6 Controller::computeQ0dot(VEC6 q){
     VEC6 result;
@@ -415,30 +391,6 @@ VEC6 Controller::computeQ0dot(VEC6 q){
     return result;
 }
 
-
-template <class MatT>
-Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
-pseudoinverse(const MatT &mat, typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4}) // choose appropriately
-{
-    typedef typename MatT::Scalar Scalar;
-    auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-    const auto &singularValues = svd.singularValues();
-    Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
-    singularValuesInv.setZero();
-    for (unsigned int i = 0; i < singularValues.size(); ++i) {
-        if (singularValues(i) > tolerance)
-        {
-            singularValuesInv(i, i) = Scalar{1} / singularValues(i);
-        }
-        else
-        {
-            singularValuesInv(i, i) = Scalar{0};
-        }
-    }
-    return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
-}
-
-
 VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
     MAT36 Jtras;
     // translation
@@ -457,34 +409,42 @@ VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
 }
 
 
-/*
-void Controller::redundantControllerRotation(Robot &r, VEC3 &rpy_f){
-    ros::Rate loop_rate(10);
-    VEC3 rpy_0 = SE3Operations::rotmToEul(SE3Operations::ro(r.forwardKinematics(r.q)));
-    VEC3 w_des = (rpy_f - rpy_0) / Controller::T;
-    int N = Controller::T / Controller::dt;
-    VEC6 q_k = r.q;
-    VEC3 rpy_des;
-    VEC3 rpy_e = rpy_0;
-    // rpy_e: current position
-    // rpy_des: desired (next) position
-    for(int i = 1; i <= N; i++){
-        rpy_des = rpy_e + w_des * Controller::dt;
-        MAT6 jac = r.jacobian(q_k);
-        VEC6 q0dot = Controller::computeQ0dot(q_k);
-         VEC6 qdot = Controller::computeQdot(jac, q_k, rpy_e, rpy_des, w_des);
-        q_k = q_k + qdot * Controller::dt;
-        publishJoints(pub_jstate, q_k);
-        ros::spinOnce();
-        loop_rate.sleep();
-        rpy_e = rpy_des;
+void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_des)
+{   
+    ROS_INFO_STREAM("Starting to move");
+    double v_ref = 0.0;
+    VEC6 q_k = r.joints.q();
+    VEC3 q_gripper = r.joints.q_gripper();
+
+    VEC6 e;
+    double e_norm;
+    ros::Rate rate(1 / dt);
+    while (true)
+    {
+        e = q_des - q_k;
+        e_norm = e.norm();
+        if (e_norm != 0.0)
+        {
+            v_ref += 0.005 * (v_des - v_ref);
+            q_k += dt * v_ref * e / e_norm;
+            publishJoints(pub_jstate, q_k, q_gripper);
+        }
+        rate.sleep();
+        if (e_norm < 0.001)
+        {
+            publishJoints(pub_jstate, q_des, q_gripper);
+            ROS_INFO_STREAM("Reached the desired position");
+            break;
+        }
     }
-    r.q = q_k;
+    r.joints.update();
 }
-*/
 
 void Robot::moveGripper(double d, int N, double dt) {
     VEC3 q_des = gripperOpeningToJointConfig(d);
+    VEC3 q_gripper = this->joints.q_gripper();
+    VEC6 q = this->joints.q();
+
     VEC3 incr = (q_des - q_gripper) / N;
     ros::Rate loop_rate(1/dt);
 
@@ -493,9 +453,9 @@ void Robot::moveGripper(double d, int N, double dt) {
         publishJoints(pub_jstate, q, q_gripper_k);
         q_gripper = q_gripper_k;
         q_gripper_k += incr;
-        ros::spinOnce();
         loop_rate.sleep();
     }
+    this->joints.update();
 }
 
 #if SOFT_GRIPPER
