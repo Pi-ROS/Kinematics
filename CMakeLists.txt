@@ -17,11 +17,12 @@ generate_messages(
    
 )
 catkin_package()
-
+ 
 ## Build talker and listener
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 
-add_executable(kinematics_node src/kinematics.cpp src/robot.cpp src/ros.cpp src/se3.cpp src/tasks/task1.cpp)
+add_executable(kinematics_node src/kinematics.cpp src/robot.cpp src/ros.cpp 
+src/se3.cpp src/tasks/task1.cpp src/tasks/task2.cpp)
 target_link_libraries(kinematics_node ${catkin_LIBRARIES})
 install(TARGETS kinematics_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
