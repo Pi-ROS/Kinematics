@@ -28,7 +28,7 @@ bool task1(ros::ServiceClient &detect){
                 block_rotation = obj.box.rotation.yaw;
 
                 ur5.move(pose);
-                ur5.descent(Robot::descentHeight, 0, true);
+                ur5.descent(Robot::descentHeight, block_rotation, true);
                 ur5.move(STATION);
                 ur5.descent(Robot::descentHeight, M_PI/2, false);
             }
