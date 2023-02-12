@@ -317,7 +317,7 @@ void Robot::descent(double h, double rotation, bool pick){
     ros::Duration(0.5).sleep();
 
     ROS_INFO_STREAM("START salita");
-    Controller::velocityController(*this, Controller::dt, 1, back);
+    Controller::velocityController(*this, Controller::dt, 1, back, true);
     ROS_INFO_STREAM("FINISH salita");
 }
 
@@ -409,7 +409,7 @@ VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
 }
 
 
-void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_des)
+void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent)
 {   
     ROS_INFO_STREAM("Starting to move");
     double v_ref = 0.0;
@@ -419,6 +419,13 @@ void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_de
     VEC6 e;
     double e_norm;
     ros::Rate rate(1 / dt);
+    
+    VEC6 q_des;
+    // The last joint will be updated only at the end of the ascent
+    if (ascent) {
+        q_des << q_f(0), q_f(1), q_f(2), q_f(3), q_f(4), q_k(5);
+    } else q_des = q_f;
+
     while (true)
     {
         e = q_des - q_k;
@@ -432,7 +439,8 @@ void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_de
         rate.sleep();
         if (e_norm < 0.001)
         {
-            publishJoints(pub_jstate, q_des, q_gripper);
+            // The final joint configuration is published
+            publishJoints(pub_jstate, q_f, q_gripper);
             ROS_INFO_STREAM("Reached the desired position");
             break;
         }

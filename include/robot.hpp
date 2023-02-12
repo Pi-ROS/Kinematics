@@ -173,8 +173,7 @@ public:
      * @param v_ref Desired velocity
      * @param q_des Desired joint state vector 
      */
-    static void velocityController(Robot &r, double dt, double v_des, VEC6 q_des);
-
+    static void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent = false);
 };
 
 
