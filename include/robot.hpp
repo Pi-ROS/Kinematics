@@ -5,6 +5,9 @@
 #include <Eigen/Dense>
 #include "se3.hpp"
 #include <cmath>
+#include <string>
+
+static const std::string nameArray[11] = {"X1-Y1-Z2", "X1-Y2-Z1", "X1-Y2-Z2", "X1-Y2-Z2-CHAMFER", "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET", "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"};
 
 class Joints{
 
@@ -48,7 +51,7 @@ private:
 public:
     
     static constexpr double workingHeight =  0.4550;
-    static constexpr double descentHeight =  0.71;
+    static constexpr double descentHeight =  0.72;
 
     Joints joints;
 
@@ -153,6 +156,7 @@ public:
     static void redundantController(Robot &r, VEC3 &x_f);
     static VEC6 computeQ0dot(VEC6 q);
     static  VEC6 computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd);
+
 
     /**
      * @brief 

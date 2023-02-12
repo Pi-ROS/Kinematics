@@ -314,7 +314,7 @@ void Robot::descent(double h, double rotation, bool pick){
         ROS_INFO_STREAM("Gripper opened");
     }
     
-    ros::Duration(1).sleep();
+    ros::Duration(0.5).sleep();
 
     ROS_INFO_STREAM("START salita");
     Controller::velocityController(*this, Controller::dt, 1, back);

@@ -13,6 +13,7 @@ bool task1(ros::ServiceClient &detect){
     detection_srv.request.detect = true;
     pijoint_vision::Object obj;
     double block_rotation = 0;
+    int class_id = 0;
 
     if (detect.call(detection_srv)){
 
@@ -23,12 +24,13 @@ bool task1(ros::ServiceClient &detect){
             for(int i=0; i < detection_srv.response.l; i++ ){
                
                 obj = detection_srv.response.objects[i];
+                class_id = obj.o_class;
                 pose << obj.box.center.x, obj.box.center.y, obj.box.center.z;
-                ROS_INFO_STREAM("Pose:\n" << pose);
                 block_rotation = obj.box.rotation.yaw;
+                ROS_INFO_STREAM("\nClass: " << nameArray[class_id] << "\nPose:\n" << pose << "\nRotation: " << block_rotation);
 
                 ur5.move(pose);
-                ur5.descent(Robot::descentHeight, 0, true);
+                ur5.descent(Robot::descentHeight, block_rotation, true);
                 ur5.move(STATION);
                 ur5.descent(Robot::descentHeight, M_PI/2, false);
             }
