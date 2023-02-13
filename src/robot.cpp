@@ -335,7 +335,6 @@ void Controller::redundantController(Robot &r, VEC3 &x_f){
     for(int i = 1; i <= N; i++){
         x_des = x_e + v_des * Controller::dt;
         MAT6 jac = r.jacobian(q_k);
-        VEC6 q0dot = Controller::computeQ0dot(q_k);
         VEC6 qdot = Controller::computeQdot(jac, q_k, x_e, x_des, v_des);
         q_k = q_k + qdot * Controller::dt;
         publishJoints(pub_jstate, q_k, q_gripper);
