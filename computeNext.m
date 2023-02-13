@@ -24,7 +24,6 @@ end
 end
 
 % scalar velocity
-
 function v = vScalar(e_k, i)
 N0 = 100;
 if( i < N0)
@@ -37,6 +36,7 @@ end
 
 % velocity
 function v = velocity(i, p_cur, p_end)
+lambda = 10;
 e_k = p_end - p_cur;
 vS = vScalar(e_k, i);
 e_norm = norm(e_k);
@@ -45,7 +45,7 @@ u = potential(p_cur, p_end);
 num = e_k ./ e_norm + u;
 den = norm(num);
 
-v = vS .* (num ./ den);
+v = lambda .* vS .* (num ./ den);
 end
 
 % qdot
