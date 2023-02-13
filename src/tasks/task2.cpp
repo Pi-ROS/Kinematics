@@ -26,7 +26,7 @@ bool task2(ros::ServiceClient &detect){
                 ur5.descent(Robot::descentHeight, block_rotation, true);
                 ur5.move(targetPositions[class_id]);
                 ur5.descent(Robot::descentHeight, M_PI/2, false);
-                Controller::velocityController(ur5, Controller::dt, 1.5, ur5.q_home, false);
+                //Controller::velocityController(ur5, Controller::dt, 1.5, ur5.q_home, false);
             }
 
         }
