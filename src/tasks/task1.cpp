@@ -23,7 +23,7 @@ bool task1(ros::ServiceClient &detect){
                 class_id = obj.o_class;
                 pose << obj.box.center.x, obj.box.center.y, obj.box.center.z;
                 block_rotation = obj.box.rotation.yaw;
-                ROS_INFO_STREAM("\nClass: " << nameArray[class_id] << "\nPose:\n" << pose << "\nRotation: " << block_rotation);
+                ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << pose << "\nRotation: " << block_rotation);
 
                 ur5.move(pose);
                 ur5.descent(Robot::descentHeight, block_rotation, true);

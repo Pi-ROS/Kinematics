@@ -8,6 +8,13 @@
 #include <kinematics/Task.h>
 
 extern Robot ur5;
+
+static const std::string targetNames[11] = {
+    "X1-Y1-Z2","X1-Y2-Z1", "X1-Y2-Z2", "X1-Y2-Z2-CHAMFER",
+    "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET",
+    "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"
+};
+
 static VEC3 targetPositions[11] = {
     VEC3(0.40, 0, 0.72),
     VEC3(0.40, -0.1, 0.72),

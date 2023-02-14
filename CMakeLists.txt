@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 2.8.3)
 project(kinematics)
-
+ 
 ## Find catkin and any catkin packages
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs pijoint_vision sensor_msgs message_generation)
 find_package(Eigen3 3.3 REQUIRED)
