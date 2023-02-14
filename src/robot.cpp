@@ -273,7 +273,7 @@ void Robot::move(VEC3 &pose){
     VEC3 tau_des;
     tau_des << pose(0), pose(1), Robot::workingHeight;
 
-    Controller::redundantController(*this, tau_des);
+    Controller::potentialFieldController(*this, tau_des);
     loop_rate.sleep();
 
     this->pose = pose;
@@ -316,8 +316,13 @@ void Robot::descent(double h, double rotation, bool pick){
     
     ros::Duration(0.5).sleep();
 
+    T_des <<    1, 0, 0, pose(0),
+                0, 1, 0, pose(1),
+                0, 0, 1, Robot::workingHeight,
+                0, 0, 0, 1;
+    q_des = this->inverseKinematics(T_des);
     ROS_INFO_STREAM("START salita");
-    Controller::velocityController(*this, Controller::dt, 1, back, true);
+    Controller::velocityController(*this, Controller::dt, 1, q_des);
     ROS_INFO_STREAM("FINISH salita");
 }
 
@@ -444,6 +449,81 @@ void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_f,
             break;
         }
     }
+    r.joints.update();
+}
+
+double Controller::scalarVelocity(VEC3 e, int iter) {
+    if (iter < Controller::N0)
+        return e.norm() * (iter / Controller::N0);
+    else
+        return e.norm();
+}
+
+VEC3 Controller::potential(VEC3 p_curr, VEC3 p_f) {
+    double radius = sqrt(pow(p_curr(0), 2) + pow(p_curr(1), 2));
+    VEC3 potentialField;
+    if (radius > Controller::r0) {
+        potentialField << 0, 0, 0;
+    }
+    else {
+        double th = atan2(p_curr(1), p_curr(0));
+        if (th < 0)
+            th += 2 * M_PI;
+        double sign = 1 ? p_f(0) > p_curr(0) : -1;
+        th += sign * M_PI / 2;
+        potentialField(0) = cos(th);
+        potentialField(1) = sin(th);
+        potentialField(2) = 0;
+        potentialField *= 4 - 2*radius/Controller::r0;
+    }
+    return potentialField;
+}
+
+VEC3 Controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) {
+    double v = scalarVelocity(e, iter);
+    double e_norm = e.norm();
+    VEC3 potentialField = potential(p_curr, p_f);
+    double crossProduct_z = potentialField(0)*e(1) - potentialField(1)*e(0);
+    if (crossProduct_z < 0 && p_f(0) > p_curr(0) || crossProduct_z > 0 && p_f(0) < p_curr(0))
+        potentialField << 0, 0, 0;
+    VEC3 numerator = e / e_norm + potentialField;
+    double denominator = numerator.norm();
+    return Controller::Lambda * v * numerator / denominator;
+}
+
+VEC6 Controller::qDot(Robot &r, VEC6 q, VEC3 e, VEC3 p_f, int iter) {
+    MAT6 Jac = r.jacobian(q);
+    MAT36 Jtau;
+    Jtau << Jac(0,0), Jac(0,1), Jac(0,2), Jac(0,3), Jac(0,4), Jac(0,5),
+            Jac(1,0), Jac(1,1), Jac(1,2), Jac(1,3), Jac(1,4), Jac(1,5),
+            Jac(2,0), Jac(2,1), Jac(2,2), Jac(2,3), Jac(2,4), Jac(2,5);
+    Eigen::MatrixXd Jpinv = pseudoinverse(Jtau);
+
+    SE3 T_curr = r.forwardKinematics(q);
+    VEC3 p_curr = SE3Operations::tau(T_curr);
+    VEC3 v = velocity(e, p_curr, p_f, iter);
+    VEC6 qdot = Jpinv * v;
+    return qdot;
+}
+
+void Controller::potentialFieldController(Robot &r, VEC3 &p_f) {
+    ros::Rate loop_rate(1/Controller::dt);
+    int i = 0;
+    VEC6 qk = r.joints.q();
+    VEC3 q_gripper = r.joints.q_gripper();
+
+    while (true) {
+        i++;
+        SE3 T_curr = r.forwardKinematics(qk);
+        VEC3 p_curr = SE3Operations::tau(T_curr);
+        VEC3 e = p_f - p_curr;
+        if (e.norm() < Controller::ErrThresh) break;
+        VEC6 qdot = Controller::qDot(r, qk, e, p_f, i);
+        qk += qdot * Controller::dt;
+        publishJoints(pub_jstate, qk, q_gripper);
+        loop_rate.sleep();
+    }
+
     r.joints.update();
 }
 

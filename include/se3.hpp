@@ -6,6 +6,7 @@
 
 typedef Eigen::Matrix<double, 4, 4> SE3;
 typedef Eigen::Matrix<double, 3, 3> SO3;
+typedef Eigen::Matrix<double, 2, 1> VEC2;
 typedef Eigen::Matrix<double, 3, 1> VEC3;
 typedef Eigen::Matrix<double, 6, 1> VEC6;
 typedef Eigen::Matrix<double, 9, 1> VEC9;

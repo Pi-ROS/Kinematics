@@ -1,5 +1,5 @@
-#ifndef JACOBIAN_HPP
-#define JACOBIAN_HPP
+#ifndef ROBOT_HPP
+#define ROBOT_HPP
 
 #include "config.hpp"
 #include <Eigen/Dense>
@@ -8,7 +8,7 @@
 #include <string>
 
 class Joints{
-
+    
 public:
     double shoulder_lift;
     double shoulder_pan;
@@ -148,21 +148,30 @@ class Controller{
     static constexpr double q6min = - M_PI / 2.0;
     static constexpr double q6max = 0;
     static constexpr double q6avg = M_PI / 2.0;
+    static constexpr double ErrThresh = 0.02;
+
+    static VEC3 potential(VEC3 p_curr, VEC3 p_f);
+    static double scalarVelocity(VEC3 e, int iter);
+    static VEC3 velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter);
+    static VEC6 qDot(Robot &r, VEC6 q, VEC3 e, VEC3 p_f, int iter);
+
 public:
     static constexpr double dt = 0.001;
     static constexpr double T = 2;
+
+    // Potential field parameters
+    static constexpr double Lambda = 2;
+    static constexpr double r0 = 0.2;
+    static constexpr double N0 = 100;
+
     static void redundantController(Robot &r, VEC3 &x_f);
     static VEC6 computeQ0dot(VEC6 q);
     static  VEC6 computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd);
 
-
     /**
-     * @brief 
-     * 
-     * @param r robot
-     * @param rpy_f roll, pitch, yaw of the final position
-     */
-    static void redundantControllerRotation(Robot &r, VEC3 &rpy_f);
+     * @brief Potential field based controller
+    */
+    static void potentialFieldController(Robot &r, VEC3 &p_f);
     
     /**
      * @brief Move the robot
