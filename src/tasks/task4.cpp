@@ -2,8 +2,8 @@
 
 static VEC3 castlePositions[3] = {
     VEC3(0.40, -0.1, 0.72),
-    VEC3(0.355, -0.1, 0.72),
-    VEC3(0.445, -0.1, 0.72)
+    VEC3(0.40, -0.145, 0.679),
+    VEC3(0.40, -0.055, 0.679)
 };
 
 bool task4(ros::ServiceClient &detect){
