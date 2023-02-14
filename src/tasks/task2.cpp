@@ -20,12 +20,13 @@ bool task2(ros::ServiceClient &detect){
                 class_id = obj.o_class;
                 desiredPosition << obj.box.center.x, obj.box.center.y, obj.box.center.z;
                 block_rotation = obj.box.rotation.yaw;
-                ROS_INFO_STREAM("\nClass: " << nameArray[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
+                ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
 
                 ur5.move(desiredPosition);
                 ur5.descent(Robot::descentHeight, block_rotation, true);
                 ur5.move(targetPositions[class_id]);
-                ur5.descent(Robot::descentHeight, M_PI/2, false);
+                ur5.descent(targetPositions[class_id](2), M_PI/2, false);
+                
             }
 
         }
