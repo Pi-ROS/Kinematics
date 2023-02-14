@@ -527,6 +527,7 @@ void Controller::potentialFieldController(Robot &r, VEC3 &p_f) {
     r.joints.update();
 }
 
+#if SIMULATION
 void Robot::moveGripper(double d, int N, double dt) {
     VEC3 q_des = gripperOpeningToJointConfig(d);
     VEC3 q_gripper = this->joints.q_gripper();
@@ -544,6 +545,18 @@ void Robot::moveGripper(double d, int N, double dt) {
     }
     this->joints.update();
 }
+#else
+void Robot::moveGripper(double d, int N, double dt) {
+    // N and dt are not used in the real robot
+
+    ros_impedance_controller::generic_float gripper_srv;
+    gripper_srv.request.data = d;
+    if (!gripperClient.call(gripper_srv) || !gripper_srv.response.ack) {
+        ROS_INFO_STREAM("Gripper service call failed");
+        exit(0);
+    }
+}
+#endif
 
 #if SOFT_GRIPPER
 VEC3 gripperOpeningToJointConfig(double d)

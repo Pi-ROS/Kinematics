@@ -5,6 +5,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
 #include <pijoint_vision/ObjectDetection.h>
+#include <ros_impedance_controller/generic_float.h>
 
 #include "se3.hpp"
 
@@ -13,6 +14,11 @@
 static std::string debug_topic = "/debug";
 static std::string joint_state_publisher_topic = "/ur5/joint_group_pos_controller/command";
 static std::string joint_state_subscriber_topic = "/ur5/joint_states";
+
+static ros::ServiceClient gripperClient;
+#if !(SIMULATION)
+static ros::ServiceClient detect;
+#endif
 
 extern ros::Publisher pub_jstate;
 
@@ -29,8 +35,6 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG);
  * @param msg Memory location where the message will be copied
 */
 VEC9 readJoints();
-
-
 
 void normalize(VEC6 &q);
 

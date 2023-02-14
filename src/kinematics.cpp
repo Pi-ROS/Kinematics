@@ -1,6 +1,6 @@
 #include "kinematics.hpp"
 #include "tasks/task.hpp"
-
+#include "ros.hpp"
 
 
 
@@ -15,8 +15,13 @@ int main(int argc, char **argv)
     pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_publisher_topic, 10);
 
     /* zed camera service*/
-    ros::ServiceClient detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
+    detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
     detect.waitForExistence();
+
+    #if !(SIMULATION)
+    gripperClient = node.serviceClient<ros_impedance_controller::generic_float>("move_gripper");
+    gripperClient.waitForExistence();
+    #endif
 
     
     // DEPLOY SERVICE
