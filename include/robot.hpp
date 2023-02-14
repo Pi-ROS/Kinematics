@@ -10,7 +10,7 @@
 static const std::string nameArray[11] = {"X1-Y1-Z2", "X1-Y2-Z1", "X1-Y2-Z2", "X1-Y2-Z2-CHAMFER", "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET", "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"};
 
 class Joints{
-
+    
 public:
     double shoulder_lift;
     double shoulder_pan;
@@ -150,7 +150,7 @@ class Controller{
     static constexpr double q6min = - M_PI / 2.0;
     static constexpr double q6max = 0;
     static constexpr double q6avg = M_PI / 2.0;
-    static constexpr double ErrThresh = 0.001;
+    static constexpr double ErrThresh = 0.02;
 
     static VEC3 potential(VEC3 p_curr, VEC3 p_f);
     static double scalarVelocity(VEC3 e, int iter);
@@ -163,7 +163,7 @@ public:
 
     // Potential field parameters
     static constexpr double Lambda = 2;
-    static constexpr double r0 = 0.35;
+    static constexpr double r0 = 0.2;
     static constexpr double N0 = 100;
 
     static void redundantController(Robot &r, VEC3 &x_f);
