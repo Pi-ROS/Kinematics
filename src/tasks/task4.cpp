@@ -25,7 +25,7 @@ bool task4(ros::ServiceClient &detect){
             for(int i=0; i < detection_srv.response.l; i++ ){
                 obj = detection_srv.response.objects[i];
                 class_id = obj.o_class;
-                if(class_id == 7){
+                if(class_id == 8){
                     // found x1-y4-z2
                     objectsArray[0] = obj;
                 } else {
