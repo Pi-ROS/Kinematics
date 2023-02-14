@@ -466,10 +466,15 @@ VEC3 Controller::potential(VEC3 p_curr, VEC3 p_f) {
         potentialField << 0, 0, 0;
     }
     else {
-        double m = 1 ? p_f(0) - p_curr(0) > 0 : -1;
-        potentialField(0) = sqrt(1 / (m*m + 1));
-        potentialField(1) = -m * potentialField(0);
+        double th = atan2(p_curr(1), p_curr(0));
+        if (th < 0)
+            th += 2 * M_PI;
+        double sign = 1 ? p_f(0) > p_curr(0) : -1;
+        th += sign * M_PI / 2;
+        potentialField(0) = cos(th);
+        potentialField(1) = sin(th);
         potentialField(2) = 0;
+        potentialField *= 4 - 2*radius/Controller::r0;
     }
     return potentialField;
 }
@@ -478,6 +483,9 @@ VEC3 Controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) {
     double v = scalarVelocity(e, iter);
     double e_norm = e.norm();
     VEC3 potentialField = potential(p_curr, p_f);
+    double crossProduct_z = potentialField(0)*e(1) - potentialField(1)*e(0);
+    if (crossProduct_z < 0 && p_f(0) > p_curr(0) || crossProduct_z > 0 && p_f(0) < p_curr(0))
+        potentialField << 0, 0, 0;
     VEC3 numerator = e / e_norm + potentialField;
     double denominator = numerator.norm();
     return Controller::Lambda * v * numerator / denominator;

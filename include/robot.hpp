@@ -163,7 +163,7 @@ public:
 
     // Potential field parameters
     static constexpr double Lambda = 2;
-    static constexpr double r0 = 0.25;
+    static constexpr double r0 = 0.35;
     static constexpr double N0 = 100;
 
     static void redundantController(Robot &r, VEC3 &x_f);
