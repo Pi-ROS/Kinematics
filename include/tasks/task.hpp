@@ -7,6 +7,8 @@
 #include "se3.hpp"
 #include <kinematics/Task.h>
 
+#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
+
 extern Robot ur5;
 
 static const std::string targetNames[11] = {
@@ -14,24 +16,33 @@ static const std::string targetNames[11] = {
     "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET",
     "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"
 };
-
-static VEC3 targetPositions[11] = {
-    VEC3(0.40, 0, 0.72),
-    VEC3(0.40, -0.1, 0.72),
-    VEC3(0.40, -0.2, 0.72),
-    VEC3(0.40, -0.3, 0.72),
-    VEC3(-1, -1, 1),  // This class is for the x1-y2-z2-twinfillet block
-    VEC3(0.3, -0.1, 0.72),
-    VEC3(0.3, -0.2, 0.72),
-    VEC3(0.3, -0.3, 0.72),
-    VEC3(0.3, -0.4, 0.72),
-    VEC3(0.2, 0, 0.72),
-    VEC3(0.2, -0.1, 0.72)
-};
-
 bool task1(ros::ServiceClient &detect);
 bool task2(ros::ServiceClient &detect);
 bool task3(ros::ServiceClient &detect);
 bool task4(ros::ServiceClient &detect);
+
+
+static int nextAvailableTargetPosition = 0;
+static VEC3 targetPositions[] = {
+    VEC3(0.40, 0, 0.735),
+    VEC3(0.40, -0.15, 0.735),
+    VEC3(0.40, -0.3, 0.735),
+    VEC3(0.25, 0, 0.735),
+    VEC3(0.25, -0.15, 0.735),
+    VEC3(0.25, -0.3, 0.735),
+};
+static int classTargetPositions[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+inline int getClassTargetPosition(int classId) {
+    if (classTargetPositions[classId] == -1) {
+        if (nextAvailableTargetPosition >= ARRAY_LENGTH(targetPositions)) {
+            ROS_INFO_STREAM("CANNOT HAVE MORE THAN " << ARRAY_LENGTH(targetPositions) << " BRICK CLASSES AT THE SAME TIME");
+            exit(0);
+        }
+        classTargetPositions[classId] = nextAvailableTargetPosition;
+        nextAvailableTargetPosition++;
+    }
+    return classTargetPositions[classId];
+}
 
 #endif

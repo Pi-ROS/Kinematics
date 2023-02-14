@@ -288,18 +288,21 @@ void Robot::descent(double h, double rotation, bool pick){
     
 
     ros::Rate loop_rate(LOOP_FREQUENCY);
-    VEC6 back = this->joints.q();
+    VEC6 q0 = this->joints.q();
+    VEC3 q_gripper = this->joints.q_gripper();
     VEC6 q_des;
     SE3 T_des;
 
-    //ROS_INFO_STREAM("status:\n" << this->q << std::endl << q_gripper << std::endl << pose);
-    
     T_des <<    cos(rotation), -sin(rotation), 0, pose(0),
                 sin(rotation), cos(rotation),  0, pose(1),
-                0, 0, 1, h,
+                0, 0, 1, this->workingHeight,
                 0, 0, 0, 1;
-    
 
+    q_des = this->inverseKinematics(T_des);
+    Controller::velocityController(*this, Controller::dt, 2, q_des);
+    this->joints.update();
+    
+    T_des(2, 3) = h;
     ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
     Controller::velocityController(*this, Controller::dt, 1, q_des);

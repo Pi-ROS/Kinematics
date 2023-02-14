@@ -24,7 +24,7 @@ bool task2(ros::ServiceClient &detect){
 
                 ur5.move(desiredPosition);
                 ur5.descent(Robot::descentHeight, block_rotation, true);
-                ur5.move(targetPositions[class_id]);
+                ur5.move(targetPositions[getClassTargetPosition(class_id)]);
                 ur5.descent(Robot::descentHeight, M_PI/2, false);
             }
 
