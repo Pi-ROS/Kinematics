@@ -307,7 +307,7 @@ void Robot::descent(double h, double rotation, bool pick){
    
     // moving gripper
     if(pick){
-        this->moveGripper(20, 10, 0.1);
+        this->moveGripper(5, 10, 0.1);
         ROS_INFO_STREAM("Gripper closed");
     } else{
         this->moveGripper(180, 10, 0.1);

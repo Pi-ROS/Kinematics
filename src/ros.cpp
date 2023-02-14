@@ -113,11 +113,12 @@ VEC9 readJoints() {
     data_read(2) = msg->position[0];
     data_read(6) = msg->position[1];
     data_read(7) = msg->position[2];
-    data_read(1) = msg->position[3];
-    data_read(0) = msg->position[4];
-    data_read(3) = msg->position[5];
-    data_read(4) = msg->position[6];
-    data_read(5) = msg->position[7];
+    data_read(8) = msg->position[3];
+    data_read(1) = msg->position[4];
+    data_read(0) = msg->position[5];
+    data_read(3) = msg->position[6];
+    data_read(4) = msg->position[7];
+    data_read(5) = msg->position[8];
     return data_read;
 }
 #endif

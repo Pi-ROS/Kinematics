@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     ur5 = Robot(q_home);
 
     ur5.moveGripper(180, 10, 0.1);
-
+    
     task2(detect);
 
     /*
