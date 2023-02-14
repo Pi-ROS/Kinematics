@@ -1,6 +1,6 @@
 #include "tasks/task.hpp"
 
-bool task2(ros::ServiceClient &detect){
+bool task3(ros::ServiceClient &detect){
     VEC3 desiredPosition;
     pijoint_vision::ObjectDetection detection_srv;
     detection_srv.request.detect = true;

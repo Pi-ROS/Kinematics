@@ -6,7 +6,7 @@ static VEC3 castlePositions[3] = {
     VEC3(0.445, -0.1, 0.72)
 };
 
-bool task2(ros::ServiceClient &detect){
+bool task4(ros::ServiceClient &detect){
     VEC3 desiredPosition;
     pijoint_vision::ObjectDetection detection_srv;
     detection_srv.request.detect = true;
