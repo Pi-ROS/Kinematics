@@ -6,7 +6,7 @@
 #define SIMULATION true
 #define USE_GRIPPER true
 #define SOFT_GRIPPER false
-
+#define DT 0.001
 
 static Eigen::Matrix<double, 6, 1> Q_HOME;
 
