@@ -26,6 +26,14 @@ class SE3Operations{
         static VEC3 tau(SE3 T);
         static VEC3 rotmToAngleAxis(SO3 R);
         static VEC6 to6D(SE3 v);
+         /**
+         * @brief Get the Gripper Pose object 
+         * 
+         * @param pose 
+         * @param yaw 
+         * @return SE3 
+         */
+        static SE3 getGripperPose(VEC3 pose, double yaw);
 };
 
 class LM{
@@ -63,6 +71,7 @@ class LM{
          * end-effector poses.
         */
         static Eigen::Matrix<double, 6, 6> Ak(Eigen::Matrix<double, 6, 6> &J, double E);
+
 };
 
 #endif

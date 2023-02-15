@@ -143,4 +143,11 @@ VEC6 SE3Operations::to6D(SE3 v){
     return ret;
 }
 
-
+SE3 SE3Operations::getGripperPose(VEC3 pose, double yaw){
+    SE3 T;
+    T << cos(yaw), -sin(yaw), 0, pose(0),
+         sin(yaw), cos(yaw), 0, pose(1),
+         0, 0, 1, pose(2),
+         0, 0, 0, 1;
+    return T;
+}
