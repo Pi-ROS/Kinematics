@@ -38,14 +38,23 @@ bool task4(ros::ServiceClient &detect){
             for(int i=0; i < detection_srv.response.l; i++ ){
                 obj = objectsArray[i];
                 class_id = obj.o_class;
-                desiredPosition << obj.box.center.x, obj.box.center.y, obj.box.center.z;
+                desiredPosition << obj.box.center.x, obj.box.center.y, ur5.workingHeight;
                 block_rotation = obj.box.rotation.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
 
-                ur5.move(desiredPosition);
-                ur5.descent(Robot::descentHeight, block_rotation, true);
-                ur5.move(castlePositions[i]);
-                ur5.descent(castlePositions[i](2), 0, false);
+                // Reach the brick
+                SE3 T_des = SE3Operations::getGripperPose(desiredPosition, block_rotation);
+                ur5.move(T_des);
+                T_des(2, 3) = ur5.descentHeight;
+                ur5.descent(T_des, true);
+
+                // Move to the final position
+                VEC3 targetPosition = castlePositions[i];
+                desiredPosition << targetPosition(0), targetPosition(1), ur5.workingHeight;
+                T_des = SE3Operations::getGripperPose(desiredPosition, M_PI/2);
+                ur5.move(T_des);
+                T_des(2, 3) = targetPosition(2);
+                ur5.descent(T_des, false);
             }
 
         }
