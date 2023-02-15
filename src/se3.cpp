@@ -76,7 +76,7 @@ VEC3 SE3Operations::tau(SE3 T) {
  * @brief Converts a rotation matrix to an angle-axis representation
 */
 
-VEC3 SE3Operations::rotmToEul(SO3 R) {
+VEC3 SE3Operations::rotmToAngleAxis(SO3 R) {
     VEC3 l;
     l << R(2, 1) - R(1, 2),
               R(0, 2) - R(2, 0),
@@ -107,7 +107,7 @@ VEC3 SE3Operations::rotmToEul(SO3 R) {
 VEC6 LM::error(SE3 &T_curr, SE3 &T_des) {
     VEC3 tau_des = SE3Operations::tau(T_des);
     VEC3 tau_curr = SE3Operations::tau(T_curr);
-    VEC3 alphaR = SE3Operations::rotmToEul(SE3Operations::ro(T_des) * SE3Operations::ro(T_curr).transpose());
+    VEC3 alphaR = SE3Operations::rotmToAngleAxis(SE3Operations::ro(T_des) * SE3Operations::ro(T_curr).transpose());
     VEC6 e;
     e << tau_des - tau_curr, alphaR;
     return e;
@@ -137,10 +137,17 @@ Eigen::Matrix<double, 6, 6> LM::Ak(Eigen::Matrix<double, 6, 6> &J, double E) {
 
 VEC6 SE3Operations::to6D(SE3 v){
     VEC3 tras = SE3Operations::tau(v);
-    VEC3 rot = SE3Operations::rotmToEul(SE3Operations::ro(v));
+    VEC3 rot = SE3Operations::rotmToAngleAxis(SE3Operations::ro(v));
     VEC6 ret;
     ret << tras, rot;
     return ret;
 }
 
-
+SE3 SE3Operations::getGripperPose(VEC3 pose, double yaw){
+    SE3 T;
+    T << cos(yaw), -sin(yaw), 0, pose(0),
+         sin(yaw), cos(yaw), 0, pose(1),
+         0, 0, 1, pose(2),
+         0, 0, 0, 1;
+    return T;
+}

@@ -1,9 +1,12 @@
-#include "../include/robot.hpp"
-#include "../include/se3.hpp"
-#include "../include/ros.hpp"
-#include "../include/config.hpp"
+#include "robot.hpp"
+#include "se3.hpp"
+#include "ros.hpp"
+#include "config.hpp"
+#include "controllers.hpp"
 #include <ros/ros.h>
 #include <cmath>
+
+using namespace vector_field_controller;
 
 constexpr double Robot::d1;
 constexpr double Robot::a2;
@@ -11,9 +14,6 @@ constexpr double Robot::a3;
 constexpr double Robot::d4;
 constexpr double Robot::d5;
 constexpr double Robot::d6;
-constexpr double Robot::workingHeight;
-constexpr double Controller::dt;
-constexpr double Controller::T;
 
 /**
  * @brief: converts an opening diameter to an actual joint configuration.
@@ -56,9 +56,7 @@ void Joints::update(){
     this->hand_1 = joints[6];
     this->hand_2 = joints[7];
     this->hand_3 = joints[8];
-
 }
-
 
 void Joints::update(VEC6 q){
     this->shoulder_pan = q[0];
@@ -236,7 +234,6 @@ VEC6 Robot::inverseKinematics(SE3 &T_des)
 
     while (i < LM::maxIterations)
     {
-
         // Current pose of the end-effector
         SE3 T_k = forwardKinematics(q_k);
         // Error vector
@@ -263,20 +260,13 @@ VEC6 Robot::inverseKinematics(SE3 &T_des)
     return q_k;
 }
 
-
-
-void Robot::move(VEC3 &pose){
-
+void Robot::move(SE3 &T_des){
     ROS_INFO_STREAM("STARTING spostamento piano");
     ros::Rate loop_rate(LOOP_FREQUENCY);
 
-    VEC3 tau_des;
-    tau_des << pose(0), pose(1), Robot::workingHeight;
-
-    Controller::potentialFieldController(*this, tau_des);
+    vectorFieldController(*this, T_des);
     loop_rate.sleep();
 
-    this->pose = pose;
     // TODO : aggiornare posizione leggendo quando arrivato in posizione
     ros::Duration(0.5).sleep(); 
 
@@ -284,33 +274,20 @@ void Robot::move(VEC3 &pose){
     ROS_INFO_STREAM("FINISH spostamento piano");
 }
 
-void Robot::descent(double h, double rotation, bool pick){
-    
-
+void Robot::descent(SE3 &T_des, bool pick){
     ros::Rate loop_rate(LOOP_FREQUENCY);
     VEC6 q0 = this->joints.q();
     VEC3 q_gripper = this->joints.q_gripper();
     VEC6 q_des;
-    SE3 T_des;
-
-    T_des <<    cos(rotation), -sin(rotation), 0, pose(0),
-                sin(rotation), cos(rotation),  0, pose(1),
-                0, 0, 1, this->workingHeight,
-                0, 0, 0, 1;
-
-    q_des = this->inverseKinematics(T_des);
-    Controller::velocityController(*this, Controller::dt, 2, q_des);
-    this->joints.update();
     
-    T_des(2, 3) = h;
     ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
-    Controller::velocityController(*this, Controller::dt, 1, q_des);
+    velocityController(*this, DT, 1, q_des);
     ROS_INFO_STREAM("FINISH discensa");
    
     // moving gripper
     if(pick){
-        this->moveGripper(5, 10, 0.1);
+        this->moveGripper(30, 10, 0.1);
         ROS_INFO_STREAM("Gripper closed");
     } else{
         this->moveGripper(180, 10, 0.1);
@@ -318,216 +295,9 @@ void Robot::descent(double h, double rotation, bool pick){
     }
     
     ros::Duration(0.5).sleep();
-
-    T_des <<    1, 0, 0, pose(0),
-                0, 1, 0, pose(1),
-                0, 0, 1, Robot::workingHeight,
-                0, 0, 0, 1;
-    q_des = this->inverseKinematics(T_des);
     ROS_INFO_STREAM("START salita");
-    Controller::velocityController(*this, Controller::dt, 1, q_des);
+    velocityController(*this, DT, 1, q0);
     ROS_INFO_STREAM("FINISH salita");
-}
-
-void Controller::redundantController(Robot &r, VEC3 &x_f){
-    ros::Rate loop_rate(1/Controller::dt);
-    VEC6 q_k = r.joints.q();
-    VEC3 q_gripper = r.joints.q_gripper();
-
-    VEC3 x_0 = SE3Operations::tau(r.forwardKinematics(q_k));
-    VEC3 x_e = x_0; // x_e: current position
-    VEC3 x_des; // x_des: desired (next) position
-    VEC3 v_des = (x_f - x_0) / Controller::T;    
-       
-    int N = Controller::T / Controller::dt;
-    for(int i = 1; i <= N; i++){
-        x_des = x_e + v_des * Controller::dt;
-        MAT6 jac = r.jacobian(q_k);
-        VEC6 qdot = Controller::computeQdot(jac, q_k, x_e, x_des, v_des);
-        q_k = q_k + qdot * Controller::dt;
-        publishJoints(pub_jstate, q_k, q_gripper);
-       
-        loop_rate.sleep();
-        x_e = x_des;
-    }
-    r.joints.update(q_k);
-}
-
-template <class MatT>
-Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
-pseudoinverse(const MatT &mat) // choose appropriately
-{   
-    typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4};
-    typedef typename MatT::Scalar Scalar;
-    auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-    const auto &singularValues = svd.singularValues();
-    Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
-    singularValuesInv.setZero();
-    for (unsigned int i = 0; i < singularValues.size(); ++i) {
-        if (singularValues(i) > tolerance)
-        {
-            singularValuesInv(i, i) = Scalar{1} / singularValues(i);
-        }
-        else
-        {
-            singularValuesInv(i, i) = Scalar{0};
-        }
-    }
-    return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
-}
-
-
-VEC6 Controller::computeQ0dot(VEC6 q){
-    VEC6 result;
-    double D1 = 1 / (Controller::q1max - Controller::q1min);
-    double D2 = 1 / (Controller::q2max - Controller::q2min);
-    double D3 = 1 / (Controller::q3max - Controller::q3min);
-    double D4 = 1 / (Controller::q4max - Controller::q4min);
-    double D5 = 1 / (Controller::q5max - Controller::q5min);
-    double D6 = 1 / (Controller::q6max - Controller::q6min);
-
-    double q1t = q(0) - Controller::q1avg;
-    double q2t = q(1) - Controller::q2avg;
-    double q3t = q(2) - Controller::q3avg;
-    double q4t = q(3) - Controller::q4avg;
-    double q5t = q(4) - Controller::q5avg;
-    double q6t = q(5) - Controller::q6avg;
-
-    result << D1 * D1 * q1t, D2 * D2 * q2t, D3 * D3 * q3t, D4 * D4 * q4t, D5 * D5 * q5t, D6 * D6 * q6t;
-    result = result / 6.0;
-    return result;
-}
-
-VEC6 Controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd){
-    MAT36 Jtras;
-    // translation
-    Jtras << Jac(0,0), Jac(0,1), Jac(0,2), Jac(0,3), Jac(0,4), Jac(0,5),
-             Jac(1,0), Jac(1,1), Jac(1,2), Jac(1,3), Jac(1,4), Jac(1,5),
-             Jac(2,0), Jac(2,1), Jac(2,2), Jac(2,3), Jac(2,4), Jac(2,5);
-
-    // rotation
-    // Jtras << Jac(3,0), Jac(3,1), Jac(3,2), Jac(3,3), Jac(3,4), Jac(3,5),
-    //          Jac(4,0), Jac(4,1), Jac(4,2), Jac(4,3), Jac(4,4), Jac(4,5),
-    //          Jac(5,0), Jac(5,1), Jac(5,2), Jac(5,3), Jac(5,4), Jac(5,5);
-    VEC6 q0dot = computeQ0dot(q);
-    Eigen::MatrixXd JtransInv = pseudoinverse(Jtras);
-    VEC6 qdot = JtransInv * vd + (Eigen::Matrix<double, 6, 6>::Identity() - JtransInv * Jtras) * q0dot;
-    return qdot;
-}
-
-
-void Controller::velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent)
-{   
-    ROS_INFO_STREAM("Starting to move");
-    double v_ref = 0.0;
-    VEC6 q_k = r.joints.q();
-    VEC3 q_gripper = r.joints.q_gripper();
-
-    VEC6 e;
-    double e_norm;
-    ros::Rate rate(1 / dt);
-    
-    VEC6 q_des;
-    // The last joint will be updated only at the end of the ascent
-    if (ascent) {
-        q_des << q_f(0), q_f(1), q_f(2), q_f(3), q_f(4), q_k(5);
-    } else q_des = q_f;
-
-    while (true)
-    {
-        e = q_des - q_k;
-        e_norm = e.norm();
-        if (e_norm != 0.0)
-        {
-            v_ref += 0.005 * (v_des - v_ref);
-            q_k += dt * v_ref * e / e_norm;
-            publishJoints(pub_jstate, q_k, q_gripper);
-        }
-        rate.sleep();
-        if (e_norm < 0.001)
-        {
-            // The final joint configuration is published
-            publishJoints(pub_jstate, q_f, q_gripper);
-            ROS_INFO_STREAM("Reached the desired position");
-            break;
-        }
-    }
-    r.joints.update();
-}
-
-double Controller::scalarVelocity(VEC3 e, int iter) {
-    if (iter < Controller::N0)
-        return e.norm() * (iter / Controller::N0);
-    else
-        return e.norm();
-}
-
-VEC3 Controller::potential(VEC3 p_curr, VEC3 p_f) {
-    double radius = sqrt(pow(p_curr(0), 2) + pow(p_curr(1), 2));
-    VEC3 potentialField;
-    if (radius > Controller::r0) {
-        potentialField << 0, 0, 0;
-    }
-    else {
-        double th = atan2(p_curr(1), p_curr(0));
-        if (th < 0)
-            th += 2 * M_PI;
-        double sign = 1 ? p_f(0) > p_curr(0) : -1;
-        th += sign * M_PI / 2;
-        potentialField(0) = cos(th);
-        potentialField(1) = sin(th);
-        potentialField(2) = 0;
-        potentialField *= 4 - 2*radius/Controller::r0;
-    }
-    return potentialField;
-}
-
-VEC3 Controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) {
-    double v = scalarVelocity(e, iter);
-    double e_norm = e.norm();
-    VEC3 potentialField = potential(p_curr, p_f);
-    double crossProduct_z = potentialField(0)*e(1) - potentialField(1)*e(0);
-    if (crossProduct_z < 0 && p_f(0) > p_curr(0) || crossProduct_z > 0 && p_f(0) < p_curr(0))
-        potentialField << 0, 0, 0;
-    VEC3 numerator = e / e_norm + potentialField;
-    double denominator = numerator.norm();
-    return Controller::Lambda * v * numerator / denominator;
-}
-
-VEC6 Controller::qDot(Robot &r, VEC6 q, VEC3 e, VEC3 p_f, int iter) {
-    MAT6 Jac = r.jacobian(q);
-    MAT36 Jtau;
-    Jtau << Jac(0,0), Jac(0,1), Jac(0,2), Jac(0,3), Jac(0,4), Jac(0,5),
-            Jac(1,0), Jac(1,1), Jac(1,2), Jac(1,3), Jac(1,4), Jac(1,5),
-            Jac(2,0), Jac(2,1), Jac(2,2), Jac(2,3), Jac(2,4), Jac(2,5);
-    Eigen::MatrixXd Jpinv = pseudoinverse(Jtau);
-
-    SE3 T_curr = r.forwardKinematics(q);
-    VEC3 p_curr = SE3Operations::tau(T_curr);
-    VEC3 v = velocity(e, p_curr, p_f, iter);
-    VEC6 qdot = Jpinv * v;
-    return qdot;
-}
-
-void Controller::potentialFieldController(Robot &r, VEC3 &p_f) {
-    ros::Rate loop_rate(1/Controller::dt);
-    int i = 0;
-    VEC6 qk = r.joints.q();
-    VEC3 q_gripper = r.joints.q_gripper();
-
-    while (true) {
-        i++;
-        SE3 T_curr = r.forwardKinematics(qk);
-        VEC3 p_curr = SE3Operations::tau(T_curr);
-        VEC3 e = p_f - p_curr;
-        if (e.norm() < Controller::ErrThresh) break;
-        VEC6 qdot = Controller::qDot(r, qk, e, p_f, i);
-        qk += qdot * Controller::dt;
-        publishJoints(pub_jstate, qk, q_gripper);
-        loop_rate.sleep();
-    }
-
-    r.joints.update();
 }
 
 #if SIMULATION

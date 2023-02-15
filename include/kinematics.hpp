@@ -1,7 +1,6 @@
 #ifndef KINEMATICS_HPP
 #define KINEMATICS_HPP
 
-
 #include "ros.hpp"
 #include "robot.hpp"
 #include <string>

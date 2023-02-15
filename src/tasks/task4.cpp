@@ -1,9 +1,9 @@
 #include "tasks/task.hpp"
 
 static VEC3 castlePositions[3] = {
-    VEC3(0.40, -0.1, 0.72),
-    VEC3(0.40, -0.145, 0.679),
-    VEC3(0.40, -0.055, 0.679)
+    VEC3(0.40, -0.1, 0.71),
+    VEC3(0.40, -0.145, 0.664),
+    VEC3(0.40, -0.055, 0.664)
 };
 
 bool task4(ros::ServiceClient &detect){
@@ -38,14 +38,23 @@ bool task4(ros::ServiceClient &detect){
             for(int i=0; i < detection_srv.response.l; i++ ){
                 obj = objectsArray[i];
                 class_id = obj.o_class;
-                desiredPosition << obj.box.center.x, obj.box.center.y, obj.box.center.z;
+                desiredPosition << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
                 block_rotation = obj.box.rotation.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
 
-                ur5.move(desiredPosition);
-                ur5.descent(Robot::descentHeight, block_rotation, true);
-                ur5.move(castlePositions[i]);
-                ur5.descent(castlePositions[i](2), 0, false);
+                // Reach the brick
+                SE3 T_des = SE3Operations::getGripperPose(desiredPosition, block_rotation);
+                ur5.move(T_des);
+                T_des(2, 3) = DESCENT_HEIGHT;
+                ur5.descent(T_des, true);
+
+                // Move to the final position
+                VEC3 targetPosition = castlePositions[i];
+                desiredPosition << targetPosition(0), targetPosition(1), WORKING_HEIGHT;
+                T_des = SE3Operations::getGripperPose(desiredPosition, M_PI/2);
+                ur5.move(T_des);
+                T_des(2, 3) = targetPosition(2);
+                ur5.descent(T_des, false);
             }
 
         }
