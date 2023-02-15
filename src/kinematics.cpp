@@ -8,6 +8,17 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "kinematics");
     ros::NodeHandle node; 
     pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_publisher_topic, 10);
+    VEC6 q_home;
+
+
+    #if TASK0
+    /* robot configuration */
+    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+    ur5 = Robot(q_home);
+    ur5.moveGripper(180, 10, 0.1);
+    task0(detect);
+    ros::spin();
+    #endif
 
     /* zed camera service */
     detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
@@ -21,12 +32,11 @@ int main(int argc, char **argv)
 
     
     /* robot state initialization */
-    VEC6 q_home;
     q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
     ur5 = Robot(q_home);
     ur5.moveGripper(180, 10, 0.1);
 
     
-    task1(detect);
+    task0(detect);
     ros::spin();
 }
