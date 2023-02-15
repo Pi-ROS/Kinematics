@@ -24,7 +24,7 @@ class SE3Operations{
         static SE3 Tz(double d);
         static SO3 ro(SE3 T);
         static VEC3 tau(SE3 T);
-        static VEC3 rotmToEul(SO3 R);
+        static VEC3 rotmToAngleAxis(SO3 R);
         static VEC6 to6D(SE3 v);
 };
 

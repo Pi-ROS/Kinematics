@@ -14,6 +14,7 @@ constexpr double Robot::d6;
 constexpr double Robot::workingHeight;
 constexpr double Controller::dt;
 constexpr double Controller::T;
+constexpr double Robot::descentHeight;
 
 /**
  * @brief: converts an opening diameter to an actual joint configuration.
@@ -263,20 +264,13 @@ VEC6 Robot::inverseKinematics(SE3 &T_des)
     return q_k;
 }
 
-
-
-void Robot::move(VEC3 &pose){
-
+void Robot::move(SE3 &T_des){
     ROS_INFO_STREAM("STARTING spostamento piano");
     ros::Rate loop_rate(LOOP_FREQUENCY);
 
-    VEC3 tau_des;
-    tau_des << pose(0), pose(1), Robot::workingHeight;
-
-    Controller::potentialFieldController(*this, tau_des);
+    Controller::potentialFieldController(*this, T_des);
     loop_rate.sleep();
 
-    this->pose = pose;
     // TODO : aggiornare posizione leggendo quando arrivato in posizione
     ros::Duration(0.5).sleep(); 
 
@@ -284,25 +278,12 @@ void Robot::move(VEC3 &pose){
     ROS_INFO_STREAM("FINISH spostamento piano");
 }
 
-void Robot::descent(double h, double rotation, bool pick){
-    
-
+void Robot::descent(SE3 &T_des, bool pick){
     ros::Rate loop_rate(LOOP_FREQUENCY);
     VEC6 q0 = this->joints.q();
     VEC3 q_gripper = this->joints.q_gripper();
     VEC6 q_des;
-    SE3 T_des;
-
-    T_des <<    cos(rotation), -sin(rotation), 0, pose(0),
-                sin(rotation), cos(rotation),  0, pose(1),
-                0, 0, 1, this->workingHeight,
-                0, 0, 0, 1;
-
-    q_des = this->inverseKinematics(T_des);
-    Controller::velocityController(*this, Controller::dt, 2, q_des);
-    this->joints.update();
     
-    T_des(2, 3) = h;
     ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
     Controller::velocityController(*this, Controller::dt, 1, q_des);
@@ -310,7 +291,7 @@ void Robot::descent(double h, double rotation, bool pick){
    
     // moving gripper
     if(pick){
-        this->moveGripper(5, 10, 0.1);
+        this->moveGripper(30, 10, 0.1);
         ROS_INFO_STREAM("Gripper closed");
     } else{
         this->moveGripper(180, 10, 0.1);
@@ -318,14 +299,8 @@ void Robot::descent(double h, double rotation, bool pick){
     }
     
     ros::Duration(0.5).sleep();
-
-    T_des <<    1, 0, 0, pose(0),
-                0, 1, 0, pose(1),
-                0, 0, 1, Robot::workingHeight,
-                0, 0, 0, 1;
-    q_des = this->inverseKinematics(T_des);
     ROS_INFO_STREAM("START salita");
-    Controller::velocityController(*this, Controller::dt, 1, q_des);
+    Controller::velocityController(*this, Controller::dt, 1, q0);
     ROS_INFO_STREAM("FINISH salita");
 }
 
@@ -462,6 +437,13 @@ double Controller::scalarVelocity(VEC3 e, int iter) {
         return e.norm();
 }
 
+double Controller::scalarRotVelocity(VEC3 e, int iter) {
+    if (iter < Controller::N0)
+        return e.norm() * (iter / Controller::N0);
+    else
+        return e.norm();
+}
+
 VEC3 Controller::potential(VEC3 p_curr, VEC3 p_f) {
     double radius = sqrt(pow(p_curr(0), 2) + pow(p_curr(1), 2));
     VEC3 potentialField;
@@ -494,32 +476,43 @@ VEC3 Controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) {
     return Controller::Lambda * v * numerator / denominator;
 }
 
-VEC6 Controller::qDot(Robot &r, VEC6 q, VEC3 e, VEC3 p_f, int iter) {
+VEC3 Controller::rotationalVelocity(VEC3 e, int iter) {
+    double w = scalarRotVelocity(e, iter);
+    double e_norm = e.norm();
+    return Controller::Lambda * w * e / e_norm;
+}
+
+VEC6 Controller::qDot(Robot &r, VEC6 q, VEC6 e, VEC3 p_f, int iter) {
     MAT6 Jac = r.jacobian(q);
-    MAT36 Jtau;
-    Jtau << Jac(0,0), Jac(0,1), Jac(0,2), Jac(0,3), Jac(0,4), Jac(0,5),
-            Jac(1,0), Jac(1,1), Jac(1,2), Jac(1,3), Jac(1,4), Jac(1,5),
-            Jac(2,0), Jac(2,1), Jac(2,2), Jac(2,3), Jac(2,4), Jac(2,5);
-    Eigen::MatrixXd Jpinv = pseudoinverse(Jtau);
+    VEC3 e_tau;
+    VEC3 e_ro;
+    e_tau << e(0), e(1), e(2);
+    e_ro << e(3), e(4), e(5);
 
     SE3 T_curr = r.forwardKinematics(q);
     VEC3 p_curr = SE3Operations::tau(T_curr);
-    VEC3 v = velocity(e, p_curr, p_f, iter);
-    VEC6 qdot = Jpinv * v;
+    VEC3 v_tau = velocity(e_tau, p_curr, p_f, iter);
+    VEC3 v_ro = rotationalVelocity(e_ro, iter);
+    VEC6 v;
+    v << v_tau(0), v_tau(1), v_tau(2), v_ro(0), v_ro(1), v_ro(2);
+
+    MAT6 Ak = LM::Ak(Jac, e.norm());
+    VEC6 gk = LM::gk(Jac, v);
+    VEC6 qdot = Ak.inverse() * gk;
     return qdot;
 }
 
-void Controller::potentialFieldController(Robot &r, VEC3 &p_f) {
+void Controller::potentialFieldController(Robot &r, SE3 &T_des) {
     ros::Rate loop_rate(1/Controller::dt);
     int i = 0;
     VEC6 qk = r.joints.q();
     VEC3 q_gripper = r.joints.q_gripper();
 
+    VEC3 p_f = SE3Operations::tau(T_des);
     while (true) {
         i++;
         SE3 T_curr = r.forwardKinematics(qk);
-        VEC3 p_curr = SE3Operations::tau(T_curr);
-        VEC3 e = p_f - p_curr;
+        VEC6 e = LM::error(T_curr, T_des);
         if (e.norm() < Controller::ErrThresh) break;
         VEC6 qdot = Controller::qDot(r, qk, e, p_f, i);
         qk += qdot * Controller::dt;

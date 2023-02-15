@@ -26,7 +26,7 @@ bool task3(ros::ServiceClient &detect){
                 ur5.descent(Robot::descentHeight, block_rotation, true);
                 ur5.move(targetPositions[getClassTargetPosition(class_id)]);
                 ur5.descent(targetPositions[getClassTargetPosition(class_id)](2), M_PI/2, false);
-                targetPositions[class_id](2) -= 0.057; // brick's height
+                targetPositions[getClassTargetPosition(class_id)](2) -= 0.057; // brick's height
             }
 
         }

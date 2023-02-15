@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     ur5.moveGripper(180, 10, 0.1);
     
-    task4(detect);
+    task1(detect);
 
     /*
     pijoint_vision::Object obj;

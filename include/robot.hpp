@@ -49,7 +49,7 @@ private:
 public:
     
     static constexpr double workingHeight =  0.4550;
-    static constexpr double descentHeight =  0.735;
+    static constexpr double descentHeight =  0.71; // 0.71 3 fingers, 0.735 2 fingers
 
     Joints joints;
 
@@ -125,8 +125,8 @@ public:
      * @param dT duration of a single step
     */
     void moveGripper(double d, int N, double dt);
-    void move(VEC3 &pose);
-    void descent(double h, double rotation, bool pick);
+    void move(SE3 &T_des);
+    void descent(SE3 &T_des, bool pick);
 };
 
 class Controller{
@@ -151,27 +151,29 @@ class Controller{
     static constexpr double ErrThresh = 0.02;
 
     static VEC3 potential(VEC3 p_curr, VEC3 p_f);
+    static double scalarRotVelocity(VEC3 e, int iter);
     static double scalarVelocity(VEC3 e, int iter);
+    static VEC3 rotationalVelocity(VEC3 e, int iter);
     static VEC3 velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter);
-    static VEC6 qDot(Robot &r, VEC6 q, VEC3 e, VEC3 p_f, int iter);
+    static VEC6 qDot(Robot &r, VEC6 q, VEC6 e, VEC3 p_f, int iter);
 
 public:
     static constexpr double dt = 0.001;
     static constexpr double T = 2;
 
     // Potential field parameters
-    static constexpr double Lambda = 2;
-    static constexpr double r0 = 0.2;
-    static constexpr double N0 = 100;
+    static constexpr double Lambda = 1;
+    static constexpr double r0 = 0.25;
+    static constexpr double N0 = 200;
 
     static void redundantController(Robot &r, VEC3 &x_f);
     static VEC6 computeQ0dot(VEC6 q);
-    static  VEC6 computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd);
+    static VEC6 computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3 vd);
 
     /**
      * @brief Potential field based controller
     */
-    static void potentialFieldController(Robot &r, VEC3 &p_f);
+    static void potentialFieldController(Robot &r, SE3 &T_des);
     
     /**
      * @brief Move the robot
