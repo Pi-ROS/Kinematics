@@ -1,9 +1,9 @@
 #include "tasks/task.hpp"
 
 bool task1(ros::ServiceClient &detect){
-    VEC3 STATION;
+    VEC3 station;
     VEC3 pose;
-    STATION << 0.30, -0.24, 0.71;
+    station << 0.30, -0.24, 0.71;
     
     pijoint_vision::ObjectDetection detection_srv;
     detection_srv.request.detect = true;
@@ -21,7 +21,7 @@ bool task1(ros::ServiceClient &detect){
                
                 obj = detection_srv.response.objects[i];
                 class_id = obj.o_class;
-                pose << obj.box.center.x, obj.box.center.y, Robot::workingHeight;
+                pose << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
                 block_rotation = obj.box.rotation.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << pose << "\nRotation: " << block_rotation);
 
@@ -29,14 +29,14 @@ bool task1(ros::ServiceClient &detect){
                 SE3 T_des;
                 T_des = SE3Operations::getGripperPose(pose, block_rotation);
                 ur5.move(T_des);
-                T_des(2, 3) = ur5.descentHeight;
+                T_des(2, 3) = DESCENT_HEIGHT;
                 ur5.descent(T_des, true);
 
                 // Move to the final position
-                pose << STATION(0), STATION(1), Robot::workingHeight;
+                pose << station(0), station(1), WORKING_HEIGHT;
                 T_des = SE3Operations::getGripperPose(pose, M_PI/2);
                 ur5.move(T_des);
-                T_des(2, 3) = STATION(2);
+                T_des(2, 3) = station(2);
                 ur5.descent(T_des, false);
             }
 

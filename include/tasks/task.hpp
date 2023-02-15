@@ -24,12 +24,12 @@ bool task4(ros::ServiceClient &detect);
 
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
-    VEC3(0.40, 0, Robot::descentHeight),
-    VEC3(0.40, -0.15, Robot::descentHeight),
-    VEC3(0.40, -0.3, Robot::descentHeight),
-    VEC3(0.25, 0, Robot::descentHeight),
-    VEC3(0.25, -0.15, Robot::descentHeight),
-    VEC3(0.25, -0.3, Robot::descentHeight),
+    VEC3(0.40, 0, DESCENT_HEIGHT),
+    VEC3(0.40, -0.15, DESCENT_HEIGHT),
+    VEC3(0.40, -0.3, DESCENT_HEIGHT),
+    VEC3(0.25, 0, DESCENT_HEIGHT),
+    VEC3(0.25, -0.15, DESCENT_HEIGHT),
+    VEC3(0.25, -0.3, DESCENT_HEIGHT),
 };
 static int classTargetPositions[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 

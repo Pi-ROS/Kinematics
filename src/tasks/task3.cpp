@@ -18,19 +18,19 @@ bool task3(ros::ServiceClient &detect){
                
                 obj = detection_srv.response.objects[i];
                 class_id = obj.o_class;
-                desiredPosition << obj.box.center.x, obj.box.center.y, ur5.workingHeight;
+                desiredPosition << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
                 block_rotation = obj.box.rotation.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
 
                 // Reach the brick
                 SE3 T_des = SE3Operations::getGripperPose(desiredPosition, block_rotation);
                 ur5.move(T_des);
-                T_des(2, 3) = ur5.descentHeight;
+                T_des(2, 3) = DESCENT_HEIGHT;
                 ur5.descent(T_des, true);
 
                 // Move to the final position
                 VEC3 targetPosition = targetPositions[getClassTargetPosition(class_id)];
-                desiredPosition << targetPosition(0), targetPosition(1), ur5.workingHeight;
+                desiredPosition << targetPosition(0), targetPosition(1), WORKING_HEIGHT;
                 T_des = SE3Operations::getGripperPose(desiredPosition, M_PI/2);
                 ur5.move(T_des);
                 T_des(2, 3) = targetPosition(2);
