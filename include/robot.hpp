@@ -13,7 +13,7 @@
 #if SIMULATION
 
 #if SOFT_GRIPPER
-#define DESCENT_HEIGHT 0.735
+#define DESCENT_HEIGHT 0.755
 #else
 #define DESCENT_HEIGHT 0.71
 #endif
@@ -23,7 +23,7 @@
 #if SOFT_GRIPPER
 #define DESCENT_HEIGHT 0.735
 #else
-#define DESCENT_HEIGHT 0.71
+#define DESCENT_HEIGHT 0.69
 #endif
 
 #endif

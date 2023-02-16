@@ -3,10 +3,8 @@
 
 
 void normalize(VEC6 &q){
-
     for (int i = 0; i < q.size(); i++)
     {
-
         double value = q(i);
         if(value > 2*M_PI) value -=2*M_PI;
         if(value < -2*M_PI) value +=2*M_PI;
@@ -72,7 +70,7 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
 
 */
 
-#if !(USE_GRIPPER)
+#if (!USE_GRIPPER || !SIMULATION)
 VEC9 readJoints() {
     sensor_msgs::JointState::ConstPtr msg = ros::topic::waitForMessage<sensor_msgs::JointState>(joint_state_subscriber_topic);
     VEC9 data_read;
