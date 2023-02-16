@@ -3,7 +3,7 @@
 bool task1(ros::ServiceClient &detect){
     VEC3 station;
     VEC3 pose;
-    station << 0.30, -0.24, 0.71;
+    station << 0.30, -0.24, DESCENT_HEIGHT;
     
     pijoint_vision::ObjectDetection detection_srv;
     detection_srv.request.detect = true;

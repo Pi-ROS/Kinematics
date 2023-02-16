@@ -1,9 +1,9 @@
 #include "tasks/task.hpp"
 
 static VEC3 castlePositions[3] = {
-    VEC3(0.40, -0.1, 0.71),
-    VEC3(0.40, -0.145, 0.664),
-    VEC3(0.40, -0.055, 0.664)
+    VEC3(0.40, -0.1, DESCENT_HEIGHT),
+    VEC3(0.40, -0.145, DESCENT_HEIGHT - 0.046),
+    VEC3(0.40, -0.055, DESCENT_HEIGHT - 0.046)
 };
 
 bool task4(ros::ServiceClient &detect){
