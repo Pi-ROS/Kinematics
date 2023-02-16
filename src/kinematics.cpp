@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
     /* zed camera service */
     detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
-    detect.waitForExistence();
+    //detect.waitForExistence();
 
     /* gripper service */
     
@@ -41,6 +41,6 @@ int main(int argc, char **argv)
     ur5.moveGripper(180, 10, 0.1);
 
     
-    task0(detect);
+    task01(detect);
     ros::spin();
 }

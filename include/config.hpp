@@ -6,9 +6,14 @@
 #define SIMULATION false
 #define USE_GRIPPER true
 #define SOFT_GRIPPER false
-#define TASK0 true
+#define TASK0 false
 #define DT 0.001
+
+#if SIMULATION
+#define VELOCITY 2
+#else
 #define VELOCITY 0.2
+#endif
 
 static Eigen::Matrix<double, 6, 1> Q_HOME;
 

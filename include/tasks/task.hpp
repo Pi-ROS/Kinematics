@@ -21,6 +21,7 @@ bool task1(ros::ServiceClient &detect);
 bool task2(ros::ServiceClient &detect);
 bool task3(ros::ServiceClient &detect);
 bool task4(ros::ServiceClient &detect);
+bool task01(ros::ServiceClient &detect);
 
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
