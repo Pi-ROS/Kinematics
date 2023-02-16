@@ -31,13 +31,11 @@ int main(int argc, char **argv)
 
     /* zed camera service */
     detect = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
-    //detect.waitForExistence();
-
-    /* gripper service */
-    
+    detect.waitForExistence();
     
     /* robot state initialization */
     ur5 = Robot(q_home);
+    ur5.joints.update();
     ur5.moveGripper(180, 10, 0.1);
 
     
