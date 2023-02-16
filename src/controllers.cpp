@@ -44,13 +44,26 @@ VEC3 vector_field_controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) 
         potentialField << 0, 0, 0;
     VEC3 numerator = e / e_norm + potentialField;
     double denominator = numerator.norm();
-    return vector_field_controller::Lambda * v * numerator / denominator;
+
+    VEC3 vel;
+    vel =  vector_field_controller::Lambda * v * numerator / denominator;
+
+    for(int i = 0; i<3; i++)
+        if(vel(i) > VELOCITY) vel(i) = VELOCITY;
+
+    return vel;
 }
 
 VEC3 vector_field_controller::rotationalVelocity(VEC3 e, int iter) {
     double w = scalarRotVelocity(e, iter);
     double e_norm = e.norm();
-    return vector_field_controller::Lambda * w * e / e_norm;
+    VEC3 vel;
+    vel =  vector_field_controller::Lambda * w * e / e_norm;
+
+    for(int i = 0; i<3; i++)
+        if(vel(i) > 0.4) vel(i) = 0.4;
+
+    return vel;
 }
 
 VEC6 vector_field_controller::qDot(Robot &r, VEC6 q, VEC6 e, VEC3 p_f, int iter) {
@@ -201,11 +214,13 @@ void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent
         {
             v_ref += 0.005 * (v_des - v_ref);
             q_k += dt * v_ref * e / e_norm;
+            
             publishJoints(pub_jstate, q_k, q_gripper);
         }
         rate.sleep();
         if (e_norm < 0.001)
         {
+           
             // The final joint configuration is published
             publishJoints(pub_jstate, q_f, q_gripper);
             ROS_INFO_STREAM("Reached the desired position");
