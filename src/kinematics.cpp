@@ -9,12 +9,21 @@ int main(int argc, char **argv)
     ros::NodeHandle node; 
     pub_jstate = node.advertise<std_msgs::Float64MultiArray>(joint_state_publisher_topic, 10);
     VEC6 q_home;
+    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+
+    #if !(SIMULATION)
+    gripperClient = node.serviceClient<ros_impedance_controller::generic_float>("move_gripper");
+    gripperClient.waitForExistence();
+     ur5 = Robot(q_home, gripperClient);
+    #else
+     ur5 = Robot(q_home);
+    #endif
 
 
     #if TASK0
     /* robot configuration */
-    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
-    ur5 = Robot(q_home);
+    
+   
     ur5.moveGripper(180, 10, 0.1);
     task0(detect);
     ros::spin();
@@ -25,14 +34,9 @@ int main(int argc, char **argv)
     detect.waitForExistence();
 
     /* gripper service */
-    #if !(SIMULATION)
-    gripperClient = node.serviceClient<ros_impedance_controller::generic_float>("move_gripper");
-    gripperClient.waitForExistence();
-    #endif
-
+    
     
     /* robot state initialization */
-    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
     ur5 = Robot(q_home);
     ur5.moveGripper(180, 10, 0.1);
 

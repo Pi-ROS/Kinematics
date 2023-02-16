@@ -71,12 +71,13 @@ public:
     Joints joints;
     VEC6 q_home;
     VEC3 pose;
-
+    ros::ServiceClient client;
     /**
      * @brief Construct a new Robot object
     */
     Robot() = default;
     Robot(VEC6 q);
+    Robot(VEC6 q, ros::ServiceClient &gripperClient);
     /**
      * @brief Transformation matrix from frame 0 to frame 1
     */

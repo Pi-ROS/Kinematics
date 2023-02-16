@@ -1,4 +1,5 @@
 #include "tasks/task.hpp"
+#include "controllers.hpp"
 #include <iostream>
 #include <signal.h>
 
@@ -15,7 +16,7 @@ void task0Descent(Robot &r, SE3 &T_des){
     VEC6 q_des;
     q_des = r.inverseKinematics(T_des);
     //ROS_INFO_STREAM("Tdes:\n" << T_des);
-    Controller::velocityController(r, Controller::dt, 1, q_des);
+    velocityController(r, DT, 1, q_des);
     r.joints.update();
 }
 
@@ -37,7 +38,7 @@ bool task0(ros::ServiceClient &detect){
     ROS_INFO_STREAM("Destination reached");
 
     while(ros::ok()){
-        height += 0.02;
+        height += 0.005;
         T_des(2, 3) = height;
         task0Descent(ur5, T_des);
         ros::Duration(0.5).sleep();

@@ -101,6 +101,22 @@ Robot::Robot(VEC6 q)
 
     this->joints = Joints(q, gripper);
     this->pose = SE3Operations::tau(this->forwardKinematics(q));
+    
+}
+Robot::Robot(VEC6 q, ros::ServiceClient &gripperClient){
+    VEC3 gripper;
+
+    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
+
+    #if SOFT_GRIPPER
+    gripper << 0.0, 0.0, 0.0;
+    #else
+    gripper << 1.8, 1.8, 1.8;
+    #endif
+
+    this->joints = Joints(q, gripper);
+    this->pose = SE3Operations::tau(this->forwardKinematics(q));
+    this->client = gripperClient;
 }
 
 /**
@@ -324,7 +340,7 @@ void Robot::moveGripper(double d, int N, double dt) {
 
     ros_impedance_controller::generic_float gripper_srv;
     gripper_srv.request.data = d;
-    if (!gripperClient.call(gripper_srv) || !gripper_srv.response.ack) {
+    if (!this->client.call(gripper_srv) || !gripper_srv.response.ack) {
         ROS_INFO_STREAM("Gripper service call failed");
         exit(0);
     }

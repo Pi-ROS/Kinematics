@@ -2,9 +2,9 @@
 #define CONFIG_HPP
 
 #include <Eigen/Dense>
-
-#define SIMULATION true
-#define USE_GRIPPER true
+#include "ros.hpp"
+#define SIMULATION false
+#define USE_GRIPPER false
 #define SOFT_GRIPPER false
 #define TASK0 true
 #define DT 0.001

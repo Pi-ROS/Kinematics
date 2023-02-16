@@ -21,7 +21,7 @@ void normalize(VEC6 &q){
 void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
     std_msgs::Float64MultiArray msg;
     // 6 joints + 2 gripper
-    msg.data.resize(qJ.size() + qG.size() - 1);
+    msg.data.resize(qJ.size());
     for (int i = 0; i < qJ.size(); i++)
     {
         msg.data[i] = qJ(i,0);
