@@ -16,7 +16,7 @@ void task0Descent(Robot &r, SE3 &T_des){
     VEC6 q_des;
     q_des = r.inverseKinematics(T_des);
     //ROS_INFO_STREAM("Tdes:\n" << T_des);
-    velocityController(r, DT, 1, q_des);
+    velocityController(r, DT, VELOCITY, q_des);
     r.joints.update();
 }
 

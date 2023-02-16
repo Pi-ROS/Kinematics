@@ -8,7 +8,7 @@
 
 namespace vector_field_controller {
     // Potential field parameters
-    constexpr double Lambda = 1;
+    constexpr double Lambda = VELOCITY;
     constexpr double r0 = 0.25;
     constexpr double N0 = 200;
     constexpr double ErrThresh = 0.02;

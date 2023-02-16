@@ -17,7 +17,7 @@ void normalize(VEC6 &q){
 /**
  * @brief Different implementations of the publisher depending on the gripper type
 */
-#if !(USE_GRIPPER)
+#if (!USE_GRIPPER || !SIMULATION)
 void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
     std_msgs::Float64MultiArray msg;
     // 6 joints + 2 gripper

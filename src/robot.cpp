@@ -298,12 +298,12 @@ void Robot::descent(SE3 &T_des, bool pick){
     
     ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
-    velocityController(*this, DT, 1, q_des);
+    velocityController(*this, DT, VELOCITY, q_des);
     ROS_INFO_STREAM("FINISH discensa");
    
     // moving gripper
     if(pick){
-        this->moveGripper(30, 10, 0.1);
+        this->moveGripper(55, 10, 0.1);
         ROS_INFO_STREAM("Gripper closed");
     } else{
         this->moveGripper(180, 10, 0.1);
@@ -312,7 +312,7 @@ void Robot::descent(SE3 &T_des, bool pick){
     
     ros::Duration(0.5).sleep();
     ROS_INFO_STREAM("START salita");
-    velocityController(*this, DT, 1, q0);
+    velocityController(*this, DT, VELOCITY, q0);
     ROS_INFO_STREAM("FINISH salita");
 }
 
