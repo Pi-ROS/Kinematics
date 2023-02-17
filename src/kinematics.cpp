@@ -39,6 +39,6 @@ int main(int argc, char **argv)
     ur5.moveGripper(180, 10, 0.1);
 
     
-    task01(detect);
+    task2(detect);
     ros::spin();
 }
