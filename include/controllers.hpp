@@ -8,7 +8,13 @@
 
 namespace vector_field_controller {
     // Potential field parameters
-    constexpr double Lambda = VELOCITY;
+    constexpr double Lambda = 5;
+    constexpr double MaxVel = VELOCITY;
+    #if SIMULATION
+    constexpr double MaxRotVel = M_PI/2;
+    #else
+    constexpr double MaxRotVel = M_PI/4;
+    #endif
     constexpr double r0 = 0.25;
     constexpr double N0 = 200;
     constexpr double ErrThresh = 0.02;

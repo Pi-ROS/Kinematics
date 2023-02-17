@@ -1,6 +1,8 @@
 #include "controllers.hpp"
 #include "ros.hpp"
 
+void enforceVelocityLimits(VEC3 &v, double max);
+
 double vector_field_controller::scalarVelocity(VEC3 e, int iter) {
     if (iter < vector_field_controller::N0)
         return e.norm() * (iter / vector_field_controller::N0);
@@ -45,24 +47,16 @@ VEC3 vector_field_controller::velocity(VEC3 e, VEC3 p_curr, VEC3 p_f, int iter) 
     VEC3 numerator = e / e_norm + potentialField;
     double denominator = numerator.norm();
 
-    VEC3 vel;
-    vel =  vector_field_controller::Lambda * v * numerator / denominator;
-
-    for(int i = 0; i<3; i++)
-        if(vel(i) > VELOCITY) vel(i) = VELOCITY;
-
+    VEC3 vel = vector_field_controller::Lambda * v * numerator / denominator;
+    enforceVelocityLimits(vel, vector_field_controller::MaxVel);
     return vel;
 }
 
 VEC3 vector_field_controller::rotationalVelocity(VEC3 e, int iter) {
     double w = scalarRotVelocity(e, iter);
     double e_norm = e.norm();
-    VEC3 vel;
-    vel =  vector_field_controller::Lambda * w * e / e_norm;
-
-    for(int i = 0; i<3; i++)
-        if(vel(i) > 0.4) vel(i) = 0.4;
-
+    VEC3 vel = vector_field_controller::Lambda * w * e / e_norm;
+    enforceVelocityLimits(vel, vector_field_controller::MaxRotVel);
     return vel;
 }
 
@@ -228,4 +222,10 @@ void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent
         }
     }
     r.joints.update();
+}
+
+void enforceVelocityLimits(VEC3 &v, double max) {
+    for (int i=0; i<3; ++i)
+        if (v(i) > max)
+            v(i) = max;
 }
