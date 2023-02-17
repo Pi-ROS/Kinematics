@@ -16,7 +16,7 @@ void task0Descent(Robot &r, SE3 &T_des){
     VEC6 q_des;
     q_des = r.inverseKinematics(T_des);
     //ROS_INFO_STREAM("Tdes:\n" << T_des);
-    velocityController(r, DT, VELOCITY, q_des);
+    velocityController(r, DT, VELOCITY, q_des, false);
     r.joints.update();
 }
 
@@ -26,7 +26,7 @@ void signal_callback_handler(int signum) {
    exit(signum);
 }
 
-bool task0(ros::ServiceClient &detect){
+bool task0(ros::ServiceClient &detectClient){
     signal(SIGINT, signal_callback_handler);
     VEC3 STATION;
     VEC3 pose;

@@ -103,21 +103,7 @@ Robot::Robot(VEC6 q)
     this->pose = SE3Operations::tau(this->forwardKinematics(q));
     
 }
-Robot::Robot(VEC6 q, ros::ServiceClient &gripperClient){
-    VEC3 gripper;
 
-    q_home << -0.32, -0.78, -2.56, -1.63, -1.57, 3.49;
-
-    #if SOFT_GRIPPER
-    gripper << 0.0, 0.0, 0.0;
-    #else
-    gripper << 1.8, 1.8, 1.8;
-    #endif
-
-    this->joints = Joints(q, gripper);
-    this->pose = SE3Operations::tau(this->forwardKinematics(q));
-    this->client = gripperClient;
-}
 
 /**
  * @brief: Transformation matrixes
@@ -290,7 +276,7 @@ void Robot::move(SE3 &T_des){
     ROS_INFO_STREAM("FINISH spostamento piano");
 }
 
-void Robot::descent(SE3 &T_des, bool pick){
+void Robot::descent(SE3 &T_des, bool pick, ros::ServiceClient &gripperClient){
     ros::Rate loop_rate(LOOP_FREQUENCY);
     VEC6 q0 = this->joints.q();
     VEC3 q_gripper = this->joints.q_gripper();
@@ -298,26 +284,26 @@ void Robot::descent(SE3 &T_des, bool pick){
     
     ROS_INFO_STREAM("STARTING discensa");
     q_des = this->inverseKinematics(T_des);
-    velocityController(*this, DT, VELOCITY, q_des);
+    velocityController(*this, DT, VELOCITY, q_des, false);
     ROS_INFO_STREAM("FINISH discensa");
    
     // moving gripper
     if(pick){
-        this->moveGripper(55, 10, 0.1);
+        this->moveGripper(gripperClient, 55, 10, 0.1); 
         ROS_INFO_STREAM("Gripper closed");
     } else{
-        this->moveGripper(180, 10, 0.1);
+        this->moveGripper(gripperClient, 180, 10, 0.1);
         ROS_INFO_STREAM("Gripper opened");
     }
     
     ros::Duration(0.5).sleep();
     ROS_INFO_STREAM("START salita");
-    velocityController(*this, DT, VELOCITY, q0);
+    velocityController(*this, DT, VELOCITY, q0, true);
     ROS_INFO_STREAM("FINISH salita");
 }
 
 #if SIMULATION
-void Robot::moveGripper(double d, int N, double dt) {
+void Robot::moveGripper(ros::ServiceClient &gripperClient, double d, int N, double dt) {
     VEC3 q_des = gripperOpeningToJointConfig(d);
     VEC3 q_gripper = this->joints.q_gripper();
     VEC6 q = this->joints.q();
@@ -335,12 +321,12 @@ void Robot::moveGripper(double d, int N, double dt) {
     this->joints.update();
 }
 #else
-void Robot::moveGripper(double d, int N, double dt) {
+void Robot::moveGripper(ros::ServiceClient &gripperClient, double d, int N, double dt) {
     // N and dt are not used in the real robot
 
     ros_impedance_controller::generic_float gripper_srv;
     gripper_srv.request.data = d;
-    if (!this->client.call(gripper_srv) || !gripper_srv.response.ack) {
+    if (!gripperClient.call(gripper_srv) || !gripper_srv.response.ack) {
         ROS_INFO_STREAM("Gripper service call failed");
         exit(0);
     }

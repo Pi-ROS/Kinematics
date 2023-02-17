@@ -16,9 +16,7 @@ static std::string joint_state_publisher_topic = "/ur5/joint_group_pos_controlle
 static std::string joint_state_subscriber_topic = "/ur5/joint_states";
 
 static ros::ServiceClient gripperClient;
-#if !(SIMULATION)
-static ros::ServiceClient detect;
-#endif
+static ros::ServiceClient detectClient;
 
 extern ros::Publisher pub_jstate;
 

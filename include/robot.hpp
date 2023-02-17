@@ -71,13 +71,12 @@ public:
     Joints joints;
     VEC6 q_home;
     VEC3 pose;
-    ros::ServiceClient client;
+
     /**
      * @brief Construct a new Robot object
     */
     Robot() = default;
     Robot(VEC6 q);
-    Robot(VEC6 q, ros::ServiceClient &gripperClient);
     /**
      * @brief Transformation matrix from frame 0 to frame 1
     */
@@ -132,9 +131,9 @@ public:
      * @param N number of steps to complete the movement
      * @param dT duration of a single step
     */
-    void moveGripper(double d, int N, double dt);
+    void moveGripper(ros::ServiceClient &gripperClient, double d, int N, double dt);
     void move(SE3 &T_des);
-    void descent(SE3 &T_des, bool pick);
+    void descent(SE3 &T_des, bool pick, ros::ServiceClient &gripperClient);
 };
 
 #endif

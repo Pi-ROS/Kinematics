@@ -16,12 +16,12 @@ static const std::string targetNames[11] = {
     "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET",
     "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"
 };
-bool task0(ros::ServiceClient &detect);
-bool task1(ros::ServiceClient &detect);
-bool task2(ros::ServiceClient &detect);
-bool task3(ros::ServiceClient &detect);
-bool task4(ros::ServiceClient &detect);
-bool task01(ros::ServiceClient &detect);
+bool task0(ros::ServiceClient &detectClient);
+bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+bool task3(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+bool task01(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
 
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
