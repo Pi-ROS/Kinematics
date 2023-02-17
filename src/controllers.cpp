@@ -185,7 +185,6 @@ VEC6 redundant_controller::computeQdot(MAT6 &Jac, VEC6 q, VEC3 xe, VEC3 xd, VEC3
 
 void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent)
 {   
-    ROS_INFO_STREAM("Starting to move");
     double v_ref = 0.0;
     VEC6 q_k = r.joints.q();
     VEC3 q_gripper = r.joints.q_gripper();
@@ -217,7 +216,6 @@ void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent
            
             // The final joint configuration is published
             publishJoints(pub_jstate, q_f, q_gripper);
-            ROS_INFO_STREAM("Reached the desired position");
             break;
         }
     }
