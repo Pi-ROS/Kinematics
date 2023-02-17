@@ -1,7 +1,7 @@
 #include "tasks/task.hpp"
 
 bool task1(ros::ServiceClient &detectClien, ros::ServiceClient &gripperClient){
-    VEC3 station;
+    VEC3 station; // final position
     VEC3 pose;
     station << 0.30, -0.24, DESCENT_HEIGHT;
     

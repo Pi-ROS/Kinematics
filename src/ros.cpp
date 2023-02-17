@@ -1,5 +1,5 @@
 #include "ros.hpp"
-#include "../include/config.hpp"
+#include "config.hpp"
 
 
 void normalize(VEC6 &q){
@@ -18,7 +18,7 @@ void normalize(VEC6 &q){
 #if (!USE_GRIPPER || !SIMULATION)
 void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
     std_msgs::Float64MultiArray msg;
-    // 6 joints + 2 gripper
+    // 6 joints only
     msg.data.resize(qJ.size());
     for (int i = 0; i < qJ.size(); i++)
     {
@@ -58,16 +58,16 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
 #endif
 
 /*
-- elbow_joint
-- hand_1_joint
-- hand_2_joint
-  - hand_3_joint
-  - shoulder_lift_joint
-  - shoulder_pan_joint
-  - wrist_1_joint
-  - wrist_2_joint
-  - wrist_3_joint
-
+CONFIGURATION WHEN READING FROM JOINTS STATE TOPIC
+    - elbow_joint
+    - hand_1_joint
+    - hand_2_joint
+    - hand_3_joint
+    - shoulder_lift_joint
+    - shoulder_pan_joint
+    - wrist_1_joint
+    - wrist_2_joint
+    - wrist_3_joint
 */
 
 #if (!USE_GRIPPER || !SIMULATION)
@@ -81,7 +81,6 @@ VEC9 readJoints() {
     data_read(0,0) = msg->position[2];
     for (int i = 3; i < data_read.size(); i++)
     {
-        //ROS_INFO_STREAM("INSIDE position " << i << " : " << msg->position[i]);
         data_read(i,0) = msg->position[i];
     }
     return data_read;

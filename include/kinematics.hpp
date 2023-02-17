@@ -5,11 +5,7 @@
 #include "robot.hpp"
 #include <string>
 
-static bool DEBUG = false;
-
-
 ros::Publisher pub_jstate;
-
 
 Robot ur5;
 

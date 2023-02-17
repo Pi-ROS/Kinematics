@@ -2,16 +2,16 @@
 #define ROS_HPP
 
 #include "ros/ros.h"
+#include "utils.hpp"
+
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
 #include <pijoint_vision/ObjectDetection.h>
 #include <ros_impedance_controller/generic_float.h>
 
-#include "se3.hpp"
 
 #define LOOP_FREQUENCY 1. // [Hz]
 
-static std::string debug_topic = "/debug";
 static std::string joint_state_publisher_topic = "/ur5/joint_group_pos_controller/command";
 static std::string joint_state_subscriber_topic = "/ur5/joint_states";
 

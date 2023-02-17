@@ -4,7 +4,7 @@
 #include "config.hpp"
 #include "robot.hpp"
 #include "ros.hpp"
-#include "se3.hpp"
+#include "utils.hpp"
 #include <kinematics/Task.h>
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
