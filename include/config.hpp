@@ -6,9 +6,9 @@
 
 #define SIMULATION true
 #define USE_GRIPPER true
-#define SOFT_GRIPPER false
+#define SOFT_GRIPPER false // True: 2-fingers gripper, False: 3-fingers gripper
 #define TASK0 false
-#define TASK_SELECTION 6
+#define TASK_SELECTION 1
 
 
 #if SIMULATION

@@ -14,23 +14,23 @@ int main(int argc, char **argv)
     /* robot state initialization */
     ur5 = Robot(q_home);
     ur5.joints.update();
-    ur5.moveGripper(gripperClient, 180, 10, 0.1);
 
     #if TASK0
     /* robot calibration task */
-    ur5.moveGripper(180, 10, 0.1);
     task0(detectClient);
     ros::spin();
     #else
 
-    // FIXME remove comments - debug only
+    /* gripper service */
+    gripperClient = node.serviceClient<ros_impedance_controller::generic_float>("move_gripper");
+    gripperClient.waitForExistence();
 
-    // /* gripper service */
-    // gripperClient = node.serviceClient<ros_impedance_controller::generic_float>("move_gripper");
-    // gripperClient.waitForExistence();
-    // /* zed camera service */
-    // detectClient = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
-    // detectClient.waitForExistence();
+    /* zed camera service */
+    detectClient = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
+    detectClient.waitForExistence();
+
+    /* gripper initialization */
+    ur5.moveGripper(gripperClient, 180, 10, 0.1);
     
     /* task selection */
     switch (TASK_SELECTION)

@@ -41,7 +41,7 @@ bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
         
     }
     else{
-        ROS_INFO_STREAM("Failed to call service");
+        ROS_INFO_STREAM("Failed to call objects detection service");
         exit(0);
     }
     return true;

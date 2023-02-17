@@ -1,6 +1,6 @@
 #include "tasks/task.hpp"
 
-bool task1(ros::ServiceClient &detectClien, ros::ServiceClient &gripperClient){
+bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
     VEC3 station; // final position
     VEC3 pose;
     station << 0.30, -0.24, DESCENT_HEIGHT;
@@ -44,7 +44,7 @@ bool task1(ros::ServiceClient &detectClien, ros::ServiceClient &gripperClient){
         
     }
     else{
-        ROS_INFO_STREAM("Failed to call service");
+        ROS_INFO_STREAM("Failed to call objects detection service");
         exit(0);
     }
     
