@@ -29,11 +29,15 @@ extern ros::Publisher pub_jstate;
 void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG);
 
 /**
- * @brief Reads the current configurations of the joints
- * @param msg Memory location where the message will be copied
+ * @brief Reads the current configurations of the joints and of the gripper.
 */
 VEC9 readJoints();
 
+/**
+ * @brief Utility to ensure that the joint configuration 
+ * is within the joint limits.
+ * @param q The joint configuration.
+ */
 void normalize(VEC6 &q);
 
 #endif
