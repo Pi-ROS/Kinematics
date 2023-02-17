@@ -6,7 +6,7 @@ static VEC3 castlePositions[3] = {
     VEC3(0.40, -0.055, DESCENT_HEIGHT - 0.046)
 };
 
-bool task4(ros::ServiceClient &detect){
+bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
     VEC3 desiredPosition;
     pijoint_vision::ObjectDetection detection_srv;
     detection_srv.request.detect = true;
@@ -14,7 +14,7 @@ bool task4(ros::ServiceClient &detect){
     double block_rotation = 0;
     int class_id = 0;
 
-    if (detect.call(detection_srv)){
+    if (detectClient.call(detection_srv)){
 
         if (detection_srv.response.success && detection_srv.response.l > 0)
         {
@@ -46,7 +46,7 @@ bool task4(ros::ServiceClient &detect){
                 SE3 T_des = SE3Operations::getGripperPose(desiredPosition, block_rotation);
                 ur5.move(T_des);
                 T_des(2, 3) = DESCENT_HEIGHT;
-                ur5.descent(T_des, true);
+                ur5.descent(T_des, true, gripperClient);
 
                 // Move to the final position
                 VEC3 targetPosition = castlePositions[i];
@@ -54,7 +54,7 @@ bool task4(ros::ServiceClient &detect){
                 T_des = SE3Operations::getGripperPose(desiredPosition, M_PI/2);
                 ur5.move(T_des);
                 T_des(2, 3) = targetPosition(2);
-                ur5.descent(T_des, false);
+                ur5.descent(T_des, false, gripperClient);
             }
 
         }

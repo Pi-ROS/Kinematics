@@ -1,5 +1,5 @@
-#ifndef SE3_HPP
-#define SE3_HPP
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
 
 #include <Eigen/Dense>

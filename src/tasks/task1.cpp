@@ -1,7 +1,7 @@
 #include "tasks/task.hpp"
 
-bool task1(ros::ServiceClient &detect){
-    VEC3 station;
+bool task1(ros::ServiceClient &detectClien, ros::ServiceClient &gripperClient){
+    VEC3 station; // final position
     VEC3 pose;
     station << 0.30, -0.24, DESCENT_HEIGHT;
     
@@ -11,7 +11,7 @@ bool task1(ros::ServiceClient &detect){
     double block_rotation = 0;
     int class_id = 0;
 
-    if (detect.call(detection_srv)){
+    if (detectClient.call(detection_srv)){
 
         if (detection_srv.response.success && detection_srv.response.l > 0)
         {
@@ -30,14 +30,14 @@ bool task1(ros::ServiceClient &detect){
                 T_des = SE3Operations::getGripperPose(pose, block_rotation);
                 ur5.move(T_des);
                 T_des(2, 3) = DESCENT_HEIGHT;
-                ur5.descent(T_des, true);
+                ur5.descent(T_des, true, gripperClient);
 
                 // Move to the final position
                 pose << station(0), station(1), WORKING_HEIGHT;
                 T_des = SE3Operations::getGripperPose(pose, M_PI/2);
                 ur5.move(T_des);
                 T_des(2, 3) = station(2);
-                ur5.descent(T_des, false);
+                ur5.descent(T_des, false, gripperClient);
             }
 
         }

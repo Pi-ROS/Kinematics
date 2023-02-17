@@ -3,7 +3,7 @@
 
 #include "config.hpp"
 #include <Eigen/Dense>
-#include "se3.hpp"
+#include "utils.hpp"
 #include <cmath>
 #include <string>
 
@@ -12,19 +12,20 @@
 /* The descent height */
 #if SIMULATION
 
-#if SOFT_GRIPPER
-#define DESCENT_HEIGHT 0.755
-#else
-#define DESCENT_HEIGHT 0.71
-#endif
+    #if SOFT_GRIPPER
+    #define DESCENT_HEIGHT 0.755
+    #else
+    #define DESCENT_HEIGHT 0.71
+    #endif
 
 #else 
-// This parameters should be tuned on the real robot
-#if SOFT_GRIPPER
-#define DESCENT_HEIGHT 0.735
-#else
-#define DESCENT_HEIGHT 0.69
-#endif
+
+    // This parameters should be tuned on the real robot
+    #if SOFT_GRIPPER
+    #define DESCENT_HEIGHT 0.735
+    #else
+    #define DESCENT_HEIGHT 0.69
+    #endif
 
 #endif
 
@@ -71,13 +72,12 @@ public:
     Joints joints;
     VEC6 q_home;
     VEC3 pose;
-    ros::ServiceClient client;
+
     /**
      * @brief Construct a new Robot object
     */
     Robot() = default;
     Robot(VEC6 q);
-    Robot(VEC6 q, ros::ServiceClient &gripperClient);
     /**
      * @brief Transformation matrix from frame 0 to frame 1
     */
@@ -132,9 +132,9 @@ public:
      * @param N number of steps to complete the movement
      * @param dT duration of a single step
     */
-    void moveGripper(double d, int N, double dt);
     void move(SE3 &T_des);
-    void descent(SE3 &T_des, bool pick);
+    void descent(SE3 &T_des, bool pick, ros::ServiceClient &gripperClient);
+    void moveGripper(ros::ServiceClient &gripperClient, double d, int N, double dt);
 };
 
 #endif

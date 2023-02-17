@@ -1,6 +1,4 @@
-#include "../include/se3.hpp"
-
-
+#include "utils.hpp"
 
 SE3 SE3Operations::Rx(double th) {
     SE3 R;
