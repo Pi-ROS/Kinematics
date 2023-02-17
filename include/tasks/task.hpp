@@ -11,17 +11,49 @@
 
 extern Robot ur5;
 
+/**
+ * @brief Mapping between class indices and class names.
+ */
 static const std::string targetNames[11] = {
     "X1-Y1-Z2","X1-Y2-Z1", "X1-Y2-Z2", "X1-Y2-Z2-CHAMFER",
     "X1-Y2-Z2-TWINFILLET", "X1-Y3-Z2", "X1-Y3-Z2-FILLET",
     "X1-Y4-Z1", "X1-Y4-Z2", "X2-Y2-Z2", "X2-Y2-Z2-FILLET"
 };
+
+/**
+ * @brief Simple task to test the robot.
+ */
 bool task0(ros::ServiceClient &detectClient);
-bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
-bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
-bool task3(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
-bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
+/**
+ * @brief Another simple task to test the robot.
+ */
 bool task01(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
+/**
+ * @brief First task: pick up one brick and move it to some desired
+ * position.
+ */
+bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
+/**
+ * @brief Second task: pick up some number of bricks and move them to
+ * the position designated by their class.
+ */
+bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
+/**
+ * @brief Third task: pick up some number of bricks and move them to
+ * the position designated by their class. More than one brick for each
+ * class may be present on the table.
+ */
+bool task3(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
+/**
+ * @brief Final task: build a small castle.
+ */
+bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
+
 
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
