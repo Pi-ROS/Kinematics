@@ -21,11 +21,6 @@ constexpr double Robot::d6;
 
 VEC3 gripperOpeningToJointConfig(double d);
 
-/**
- * @brief: Constructor for the Robot class.
- * @param: q - the joint state vector
- */
-
 Joints::Joints(VEC6 q, VEC3 gripper){
     this->update(q, gripper);
 }
@@ -109,6 +104,7 @@ Robot::Robot(VEC6 q)
  * @brief: Transformation matrixes
  * @param: theta - the joint angle
  */
+
 SE3 Robot::T01(double theta1)
 {
     SE3 tmp;

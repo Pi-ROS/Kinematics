@@ -70,6 +70,9 @@ CONFIGURATION WHEN READING FROM JOINTS STATE TOPIC
     - wrist_3_joint
 */
 
+/**
+ * @brief Different implementations of the publisher depending on the gripper type
+*/
 #if (!USE_GRIPPER || !SIMULATION)
 VEC9 readJoints() {
     sensor_msgs::JointState::ConstPtr msg = ros::topic::waitForMessage<sensor_msgs::JointState>(joint_state_subscriber_topic);

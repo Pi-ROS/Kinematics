@@ -97,11 +97,6 @@ VEC3 SE3Operations::rotmToAngleAxis(SO3 R) {
     return alphaR;
 }
 
-/**
- * @brief Computes the error vector between the desired and 
- * current end-effector poses.
-*/
-
 VEC6 LM::error(SE3 &T_curr, SE3 &T_des) {
     VEC3 tau_des = SE3Operations::tau(T_des);
     VEC3 tau_curr = SE3Operations::tau(T_curr);
@@ -111,21 +106,11 @@ VEC6 LM::error(SE3 &T_curr, SE3 &T_des) {
     return e;
 }
 
-/**
- * @brief Computes the gk term, which represents the direction
- * of the update for the joint configuration.
-*/
-
 VEC6 LM::gk(Eigen::Matrix<double, 6, 6> &J, VEC6 &e) {
     VEC6 g;
     g = J.transpose() * e;
     return g;
 }
-
-/**
- * @brief Computes the Ak matrix, which drives the update for
- * the joint coordinates.
-*/
 
 Eigen::Matrix<double, 6, 6> LM::Ak(Eigen::Matrix<double, 6, 6> &J, double E) {
     Eigen::Matrix<double, 6, 6> A;

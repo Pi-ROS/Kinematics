@@ -30,6 +30,7 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG);
 
 /**
  * @brief Reads the current configurations of the joints and of the gripper.
+ * @return The joint configuration.
 */
 VEC9 readJoints();
 
