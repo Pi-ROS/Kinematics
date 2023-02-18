@@ -10,7 +10,8 @@ void attach(const char* model1, const char* link1, const char* model2, const cha
     link_attacher_srv.request.link_name_1 = link1;
     link_attacher_srv.request.model_name_2 = model2;
     link_attacher_srv.request.link_name_2 = link2;
-    attach_client.call(link_attacher_srv);
+    if (!attach_client.call(link_attacher_srv))
+        ROS_INFO_STREAM("Attach failed");
 }
 
 void detach(const char* model1, const char* link1, const char* model2, const char* link2)
@@ -19,5 +20,6 @@ void detach(const char* model1, const char* link1, const char* model2, const cha
     link_attacher_srv.request.link_name_1 = link1;
     link_attacher_srv.request.model_name_2 = model2;
     link_attacher_srv.request.link_name_2 = link2;
-    detach_client.call(link_attacher_srv);
+    if (!detach_client.call(link_attacher_srv))
+        ROS_INFO_STREAM("Detach failed");
 }

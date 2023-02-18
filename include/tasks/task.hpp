@@ -65,6 +65,7 @@ static VEC3 targetPositions[] = {
     VEC3(0.25, -0.3, DESCENT_HEIGHT),
 };
 static int classTargetPositions[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+static double classHeight[11] = {0.06, 0.03, 0.06, 0.06, 0.06, 0.06, 0.06, 0.03, 0.06, 0.06, 0.06};
 
 inline int getClassTargetPosition(int classId) {
     if (classTargetPositions[classId] == -1) {
@@ -77,5 +78,28 @@ inline int getClassTargetPosition(int classId) {
     }
     return classTargetPositions[classId];
 }
+
+int getModelFromPosition(double x, double y);
+
+static const char* brick_models_task4[] = {
+    "x1-y4-z2", 
+    "x1-y4-z2-2",
+    "x1-y4-z1",
+    "x1-y4-z1-2",
+};
+
+static const char* brick_models_task3[] = {
+    "x1-y4-z2", 
+    "x1-y4-z2-2",
+    "x1-y4-z1",
+    "x1-y4-z1-2",
+};
+
+static const double models_positions[][2] = {
+    {-0.447, -0.303},
+    {-0.253, -0.303},
+    {-0.053, -0.303},
+    {0.147, -0.303},
+};
 
 #endif
