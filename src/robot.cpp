@@ -2,6 +2,7 @@
 #include "utils.hpp"
 #include "ros.hpp"
 #include "config.hpp"
+#include "link_attacher.hpp"
 #include "controllers.hpp"
 #include <ros/ros.h>
 #include <cmath>
@@ -262,7 +263,6 @@ void Robot::move(SE3 &T_des){
     vectorFieldController(*this, T_des);
     loop_rate.sleep();
 
-    ros::Duration(0.5).sleep(); 
 
     this->joints.update();
     ROS_INFO_STREAM("FINISH: planar motion");
@@ -275,18 +275,25 @@ void Robot::descent(SE3 &T_des, bool pick, ros::ServiceClient &gripperClient){
     VEC6 q_des;
     
     ROS_INFO_STREAM("START: descent");
+    SE3 T_curr = this->forwardKinematics(q0);
+    SE3 T_des1 = T_des;
+    T_des1(0, 3) = T_curr(0, 3);
+    T_des1(1, 3) = T_curr(1, 3);
+    T_des1(2, 3) = T_curr(2, 3);
+    q_des = this->inverseKinematics(T_des1);
+    velocityController(*this, DT, VELOCITY, q_des, false);
+
     q_des = this->inverseKinematics(T_des);
     velocityController(*this, DT, VELOCITY, q_des, false);
     ROS_INFO_STREAM("FINISH: descent");
    
-    // moving gripper
-    if(pick){
-        this->moveGripper(gripperClient, 55, 10, 0.1); 
-    } else{
+    if(pick)
+        this->moveGripper(gripperClient, GRIPPER_OPENING, 10, 0.1); 
+    else
         this->moveGripper(gripperClient, 180, 10, 0.1);
-    }
+        
+    ros::Duration(1).sleep();
     
-    ros::Duration(0.5).sleep();
     ROS_INFO_STREAM("START: ascent");
     velocityController(*this, DT, VELOCITY, q0, true);
     ROS_INFO_STREAM("FINISH: ascent");
