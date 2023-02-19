@@ -66,7 +66,7 @@ static VEC3 targetPositions[] = {
     VEC3(0.25, -0.3, DESCENT_HEIGHT),
 };
 static int classTargetPositions[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-static double classHeight[11] = {0.06, 0.03, 0.06, 0.06, 0.06, 0.06, 0.06, 0.03, 0.06, 0.06, 0.06};
+static double classHeight[11] = {0.06, 0.035, 0.06, 0.06, 0.06, 0.06, 0.06, 0.035, 0.06, 0.06, 0.06};
 
 inline int getClassTargetPosition(int classId) {
     if (classTargetPositions[classId] == -1) {
