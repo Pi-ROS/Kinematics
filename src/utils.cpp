@@ -134,3 +134,10 @@ SE3 SE3Operations::getGripperPose(VEC3 pose, double yaw){
          0, 0, 0, 1;
     return T;
 }
+
+MAT2 rotMatrix2D(double th) {
+    MAT2 R;
+    R << cos(th), -sin(th),
+         sin(th), cos(th);
+    return R;
+}

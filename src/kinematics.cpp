@@ -1,5 +1,6 @@
 #include "kinematics.hpp"
 #include "tasks/task.hpp"
+#include "link_attacher.hpp"
 #include "ros.hpp"
 
 int main(int argc, char **argv)
@@ -29,6 +30,14 @@ int main(int argc, char **argv)
     detectClient = node.serviceClient<pijoint_vision::ObjectDetection>("object_detection");
     detectClient.waitForExistence();
 
+    #if SIMULATION && (TASK_SELECTION == 3 || TASK_SELECTION == 4 || TASK_SELECTION == 5)
+    /* link attacher service */
+    attach_client = node.serviceClient<gazebo_ros_link_attacher::Attach>("link_attacher_node/attach");
+    attach_client.waitForExistence();
+    detach_client = node.serviceClient<gazebo_ros_link_attacher::Attach>("link_attacher_node/detach");
+    detach_client.waitForExistence();
+    #endif
+
     /* gripper initialization */
     ur5.moveGripper(gripperClient, 180, 10, 0.1);
     
@@ -48,6 +57,9 @@ int main(int argc, char **argv)
             task4(detectClient, gripperClient);
             break;
         case 5:
+            task5(detectClient, gripperClient);
+            break;
+        case 6:
             task01(detectClient, gripperClient);
             break;
         default:
