@@ -19,7 +19,7 @@ bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
                 obj = detection_srv.response.objects[i];
                 class_id = obj.o_class;
                 desiredPosition << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
-                block_rotation = obj.box.rotation.yaw;
+                block_rotation = obj.box.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << desiredPosition << "\nRotation: " << block_rotation);
 
                 // Reach the brick

@@ -8,7 +8,7 @@
 #define USE_GRIPPER true
 #define SOFT_GRIPPER true // True: 2-fingers gripper, False: 3-fingers gripper
 #define TASK0 false
-#define TASK_SELECTION 4
+#define TASK_SELECTION 5
 #define DT 0.001
 
 

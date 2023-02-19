@@ -5,7 +5,7 @@
 #include "robot.hpp"
 #include "ros.hpp"
 #include "utils.hpp"
-#include <kinematics/Task.h>
+#include <kinematics/TaskResponse.h>
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
@@ -54,6 +54,7 @@ bool task3(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
  */
 bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
 
+bool task5(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
 
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
@@ -80,6 +81,7 @@ inline int getClassTargetPosition(int classId) {
 }
 
 int getModelFromPosition(double x, double y);
+void task3v1Descent(Robot &ur5, SE3 T_des, bool pick, int brick_class, char* detected_model);
 
 static const char* brick_models_task4[] = {
     "x1-y4-z2", 

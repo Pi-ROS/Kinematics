@@ -10,9 +10,12 @@ typedef Eigen::Matrix<double, 2, 1> VEC2;
 typedef Eigen::Matrix<double, 3, 1> VEC3;
 typedef Eigen::Matrix<double, 6, 1> VEC6;
 typedef Eigen::Matrix<double, 9, 1> VEC9;
+typedef Eigen::Matrix<double, 2, 2> MAT2;
 typedef Eigen::Matrix<double, 6, 6> MAT6;
 typedef Eigen::Matrix<double, 3, 6> MAT36;
 typedef Eigen::Matrix<double, 6, 3> MAT63;
+
+MAT2 rotMatrix2D(double th);
 
 class SE3Operations{
     public:
