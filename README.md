@@ -32,3 +32,10 @@ After installing the tool, issue
 $ doxygen
 ```
 
+## Running tasks 3 and 4
+
+In tasks 3 and 4, we employed a virtual link attacher in order to simulate the correct behavior of the gripper. Dowload into your CatKin workspace the Gazebo service code at [this link](https://github.com/PiJoint/gazebo_link_attacher), and add the following line to your `.world` file.
+
+```
+<plugin name="ros_link_attacher_plugin" filename="libgazebo_ros_link_attacher.so"/>
+```
