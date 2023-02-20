@@ -18,7 +18,7 @@ namespace vector_field_controller {
     #if SIMULATION
     constexpr double Lambda = 5;
     #else
-    constexpr double Lambda = 0.75
+    constexpr double Lambda = 0.75;
     #endif
 
     /**

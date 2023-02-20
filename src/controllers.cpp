@@ -94,6 +94,7 @@ void vector_field_controller::vectorFieldController(Robot &r, SE3 &T_des) {
         if (e.norm() < vector_field_controller::ErrThresh) break;
         VEC6 qdot = vector_field_controller::qDot(r, qk, e, p_f, i);
         qk += qdot * DT;
+        normalize(qk);
         publishJoints(pub_jstate, qk, q_gripper);
         loop_rate.sleep();
     }
