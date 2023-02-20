@@ -10,7 +10,7 @@
 #include <ros_impedance_controller/generic_float.h>
 
 
-#define LOOP_FREQUENCY 1. // [Hz]
+#define LOOP_FREQUENCY 5 // [Hz]
 
 static std::string joint_state_publisher_topic = "/ur5/joint_group_pos_controller/command";
 static std::string joint_state_subscriber_topic = "/ur5/joint_states";

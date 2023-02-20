@@ -287,7 +287,7 @@ void Robot::descent(SE3 &T_des, bool pick, ros::ServiceClient &gripperClient){
     else
         this->moveGripper(gripperClient, 180, 10, 0.1);
         
-    ros::Duration(1).sleep();
+    loop_rate.sleep();
     
     ROS_INFO_STREAM("START: ascent");
     velocityController(*this, DT, VELOCITY, q0, true);
