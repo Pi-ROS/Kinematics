@@ -7,15 +7,15 @@
 #include <cmath>
 #include <string>
 
-#define WORKING_HEIGHT 0.5750
+#define WORKING_HEIGHT 0.4550 + GRIPPER_OFFSET
 
 /* The descent height */
 #if SIMULATION
 
     #if SOFT_GRIPPER
-    #define DESCENT_HEIGHT 0.865
+    #define DESCENT_HEIGHT 0.73 + GRIPPER_OFFSET
     #else
-    #define DESCENT_HEIGHT 0.71
+    #define DESCENT_HEIGHT 0.71 + GRIPPER_OFFSET
     #endif
 
 #else 
@@ -71,7 +71,7 @@ private:
     static constexpr double a3 = -0.39225;
     static constexpr double d4 = 0.134;
     static constexpr double d5 = 0.100;
-    static constexpr double d6 = 0.22;
+    static constexpr double d6 = 0.1 + GRIPPER_OFFSET;
 
 public:
     Joints joints;

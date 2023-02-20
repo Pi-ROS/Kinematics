@@ -7,8 +7,15 @@
 #define SIMULATION true
 #define USE_GRIPPER true
 #define SOFT_GRIPPER true // True: 2-fingers gripper, False: 3-fingers gripper
+
+#if SOFT_GRIPPER
+    #define GRIPPER_OFFSET 0.13
+#else
+    #define GRIPPER_OFFSET 0.10 // ** TO BE MESURED IN THE LABORATORY **
+#endif
+
 #define TASK0 false
-#define TASK_SELECTION 5
+#define TASK_SELECTION 3
 #define DT 0.001
 
 

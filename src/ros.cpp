@@ -1,13 +1,14 @@
 #include "ros.hpp"
 #include "config.hpp"
 
+#define eps 0.05
 
 void normalize(VEC6 &q){
     for (int i = 0; i < q.size(); i++)
     {
         double value = q(i);
-        if(value > 2*M_PI) value -=2*M_PI;
-        if(value < -2*M_PI) value +=2*M_PI;
+        if(value > 2*M_PI - eps) value -=2*M_PI;
+        if(value < -2*M_PI + eps) value +=2*M_PI;
         q(i) = value;
     }
 }

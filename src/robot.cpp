@@ -259,7 +259,6 @@ void Robot::move(SE3 &T_des){
     vectorFieldController(*this, T_des);
     loop_rate.sleep();
 
-
     this->joints.update();
     ROS_INFO_STREAM("FINISH: planar motion");
 }

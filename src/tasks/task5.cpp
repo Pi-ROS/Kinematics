@@ -72,7 +72,7 @@ void computeMotionPlan(VEC2 pioliniDisplacement, pijoint_vision::Object obj)
     if (pioliniDisplacement(0) < 0)
     {
         positions[0] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
-        positions[1] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, obj.box.yaw)), .move = GRASP};
+        positions[1] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, 0)), .move = GRASP};
         positions[2] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
         positions[3] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
         positions[4] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(-M_PI / 2, 0, 0)), .move = NOTHING};
@@ -88,7 +88,7 @@ void computeMotionPlan(VEC2 pioliniDisplacement, pijoint_vision::Object obj)
     else
     {
         positions[0] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
-        positions[1] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, obj.box.yaw)), .move = GRASP};
+        positions[1] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, 0)), .move = GRASP};
         positions[2] = {.pose = getSE3Pose(VEC3(0, 0, DESCENT_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
         positions[3] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(0, 0, 0)), .move = NOTHING};
         positions[4] = {.pose = getSE3Pose(VEC3(0, 0, WORKING_HEIGHT), VEC3(-M_PI / 2, 0, 0)), .move = NOTHING};
