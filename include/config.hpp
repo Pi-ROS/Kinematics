@@ -32,7 +32,7 @@
 
 #else
     #define VELOCITY 0.2
-    #define GRIPPER_OPENING 55
+    #define GRIPPER_OPENING 45
 #endif
 
 #endif
