@@ -15,7 +15,11 @@ namespace vector_field_controller {
     /**
      * @brief Scaling factor for the translational velocity.
      */
-    constexpr double Lambda = 0.75;
+    #if SIMULATION
+    constexpr double Lambda = 5;
+    #else
+    constexpr double Lambda = 0.75
+    #endif
 
     /**
      * @brief The maximum allowed translational velocity.
@@ -28,7 +32,7 @@ namespace vector_field_controller {
     #if SIMULATION
     constexpr double MaxRotVel = M_PI/2;
     #else
-    constexpr double MaxRotVel = M_PI/4;
+    constexpr double MaxRotVel = M_PI/5;
     #endif
 
     /**
