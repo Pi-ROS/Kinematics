@@ -24,7 +24,7 @@
     #if SOFT_GRIPPER
     #define DESCENT_HEIGHT 0.735
     #else
-    #define DESCENT_HEIGHT 0.69 + GRIPPER_OFFSET
+    #define DESCENT_HEIGHT 0.70 + GRIPPER_OFFSET
     #endif
 
 #endif

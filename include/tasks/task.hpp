@@ -56,6 +56,8 @@ bool task4(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
 
 bool task5(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient);
 
+void callClient(ros::ServiceClient &detectClient, pijoint_vision::ObjectDetection &detection_srv);
+
 static int nextAvailableTargetPosition = 0;
 static VEC3 targetPositions[] = {
     VEC3(0.40, 0, DESCENT_HEIGHT),

@@ -1,5 +1,7 @@
 #include "tasks/task.hpp"
 
+void callClient(ros::ServiceClient &detectClient, pijoint_vision::ObjectDetection &detection_srv);
+
 bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
     VEC3 station; // final position
     VEC3 pose;
@@ -22,6 +24,13 @@ bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
                 obj = detection_srv.response.objects[i];
                 class_id = obj.o_class;
                 pose << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
+                while(isnan(pose(0)) || isnan(pose(1))) {
+                    ROS_INFO_STREAM("CENTER IS NAN");
+                    callClient(detectClient, detection_srv);
+                    obj = detection_srv.response.objects[i];
+                    pose << obj.box.center.x, obj.box.center.y, WORKING_HEIGHT;
+                }
+
                 block_rotation = obj.box.yaw;
                 ROS_INFO_STREAM("\nClass: " << targetNames[class_id] << "\nPose:\n" << pose << "\nRotation: " << block_rotation);
 
@@ -49,4 +58,11 @@ bool task1(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
     }
     
     return true;
+}
+
+void callClient(ros::ServiceClient &detectClient, pijoint_vision::ObjectDetection &detection_srv) {
+    if (!detectClient.call(detection_srv) || !detection_srv.response.success || !detection_srv.response.l > 0){
+        ROS_INFO_STREAM("Failed to call objects detection service");
+        exit(0);
+    }
 }

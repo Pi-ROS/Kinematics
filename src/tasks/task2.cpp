@@ -13,6 +13,20 @@ bool task2(ros::ServiceClient &detectClient, ros::ServiceClient &gripperClient){
         if (detection_srv.response.success && detection_srv.response.l > 0)
         {
             ROS_INFO_STREAM("Object detected");
+
+            bool foundNan = true;
+            while(foundNan) {
+                foundNan = false;
+                for(int i=0; i<detection_srv.response.l; ++i) {
+                    obj = detection_srv.response.objects[i];
+                    if (isnan(obj.box.center.x) || isnan(obj.box.center.y)) {
+                        ROS_INFO_STREAM("CENTER IS NAN");
+                        callClient(detectClient, detection_srv);
+                        foundNan = true;
+                        break;
+                    }
+                }
+            }
             
             for(int i=0; i < detection_srv.response.l; i++ ){
                

@@ -2,7 +2,7 @@
 #define LINK_ATTACHER_HPP
 
 #include <ros/ros.h>
-#include "gazebo_ros_link_attacher/Attach.h"
+// #include "gazebo_ros_link_attacher/Attach.h"
 
 static const char ur5_model[] = "ur5";
 static const char ur5_hand_link[] = "hand_1_link";

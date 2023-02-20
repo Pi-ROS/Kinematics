@@ -14,16 +14,15 @@ generate_messages(
    DEPENDENCIES
    pijoint_vision
    std_msgs
-   sensor_msgs
+   sensor_msgs 
 )
-catkin_package()
+catkin_package() 
  
 ## Build talker and listener
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 
 add_executable(kinematics_node src/kinematics.cpp src/robot.cpp src/ros.cpp src/controllers.cpp 
-src/utils.cpp src/tasks/task0.cpp src/tasks/task1.cpp src/tasks/task2.cpp src/tasks/task3.cpp
-src/tasks/task4.cpp src/tasks/task01.cpp src/link_attacher.cpp src/tasks/task5.cpp)
+src/utils.cpp src/tasks/task0.cpp src/tasks/task1.cpp src/tasks/task2.cpp src/tasks/task01.cpp)
 
 
 target_link_libraries(kinematics_node ${catkin_LIBRARIES})

@@ -15,7 +15,7 @@ namespace vector_field_controller {
     /**
      * @brief Scaling factor for the translational velocity.
      */
-    constexpr double Lambda = 5;
+    constexpr double Lambda = 0.75;
 
     /**
      * @brief The maximum allowed translational velocity.
@@ -35,7 +35,7 @@ namespace vector_field_controller {
      * @brief The range of the vector field, expressed in meters as a radial distance
      * from the z axis of the base frame.
      */
-    constexpr double r0 = 0.25;
+    constexpr double r0 = 0.2;
 
     /**
      * @brief Scaling term.
