@@ -32,7 +32,7 @@ namespace vector_field_controller {
     #if SIMULATION
     constexpr double MaxRotVel = M_PI/2;
     #else
-    constexpr double MaxRotVel = M_PI/5;
+    constexpr double MaxRotVel = M_PI/4;
     #endif
 
     /**
