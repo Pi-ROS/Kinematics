@@ -25,6 +25,7 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
     {
         msg.data[i] = qJ(i,0);
     }
+    msg.data[5] = 3.49;
     pub.publish(msg);
 }
 #elif SOFT_GRIPPER
@@ -36,6 +37,7 @@ void publishJoints(ros::Publisher &pub, VEC6 &qJ, VEC3 &qG) {
     {
         msg.data[i] = qJ(i);
     }
+    msg.data[5] = 3.49;
 
     msg.data[6] = qG(0,0);
     msg.data[7] = qG(1,0);

@@ -203,6 +203,7 @@ void velocityController(Robot &r, double dt, double v_des, VEC6 q_f, bool ascent
     while (true)
     {
         e = q_des - q_k;
+        e(5) = 0;
         e_norm = e.norm();
         if (e_norm != 0.0)
         {
